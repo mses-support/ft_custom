@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+<template id="invoice_report_template">
+<t t-name="ft_backend.invoice_report_template">
+
+    <t t-foreach="docs" t-as="o">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+
+                <style>
+                    table {
+                        border-collapse: collapse;
+                        width: 100%;
+                    }
+                    td, th {
+                        border: 1px solid #000;
+                        padding: 8px 8px;
+                         padding-right: 12px;
+                        line-height: 1.5;
+                        vertical-align: middle;
+                    }
+                    th {
+                        font-weight: bold;
+                    }
+                    .red {
+                        background-color: #ff0000;
+                        color: #fff;
+                    }
+                    .center {
+                        text-align: center;
+                    }
+                    .right {
+                        text-align: right;
+                        padding-right: 12px;
+                    }
+                    .total-amount {
+                        min-width: 100px;
+                        padding-right: 14px !important;
+                        text-align: right;
+                    }
+
+                    .label-cell {
+                        padding-left: 12px !important;
+                    }
+
+                    .label-cell-righ {
+                        padding-right: 12px !important;
+                    }
+
+                </style>
+
+                <div class="page" style="font-size:12px;">
+                <!-- ================= INVOICE TITLE ================= -->
+                <div style="
+                    text-align:center;
+                    font-weight:bold;
+                    font-style:italic;
+                    font-size:16px;
+                    margin:10px 0 12px 0;
+                ">
+                    VAT Invoice
+                </div>
+
+
+<table>
+    <colgroup>
+        <col style="width:50%;"/>
+        <col style="width:50%;"/>
+    </colgroup>
+
+    <tr>
+        <!-- LEFT : COMPANY DETAILS -->
+        <td class="label-cell">
+            <strong>Building 3187 Al Ulaya, Al Khobar 34447, Office 109, Kingdom of Saudi Arabia</strong><br/>
+            المملكة العربية السعودية، الخبر، العليا، رقم المبنى 3187، مكتب 109
+        </td>
+
+        <!-- RIGHT : CUSTOMER DETAILS -->
+        <td class="label-cell">
+            <strong>
+                <t t-esc="o.partner_id.name"/>
+            </strong><br/>
+            <t t-esc="o.partner_id.street or ''"/>
+            <t t-if="o.partner_id.street2">
+                , <t t-esc="o.partner_id.street2"/>
+            </t><br/>
+            <t t-if="o.partner_id.city">
+                <t t-esc="o.partner_id.city"/>
+            </t>
+            <t t-if="o.partner_id.country_id">
+                , <t t-esc="o.partner_id.country_id.name"/>
+            </t>
+        </td>
+    </tr>
+
+    <tr>
+        <!-- LEFT : CR NO -->
+        <td class="label-cell">
+            C.R. No: 2051224654<br/>
+            س.ت: 2051224654
+        </td>
+
+        <!-- RIGHT : CUSTOMER VAT -->
+        <td class="label-cell">
+            VAT No: 
+            <t t-if="o.partner_id.vat">
+                <t t-esc="o.partner_id.vat"/>
+            </t>
+            <t t-else="">-</t><br/>
+            الرقم الضريبي
+        </td>
+    </tr>
+
+    <tr>
+        <!-- LEFT : COMPANY VAT -->
+        <td class="label-cell">
+            VAT No:310316882900003<br/>
+            الرقم الضريبي:  310316882900003
+        </td>
+
+        <!-- RIGHT : EMPTY (as per screenshot spacing) -->
+        <td></td>
+    </tr>
+</table> <br/>
+
+
+                    <!-- ================= INVOICE INFO ================= -->
+                    <table>
+                        <tr>
+                            <td class="red label-cell">Invoice No.<br/>رقم الفاتورة</td>
+                            <td><t t-esc="o.name"/></td>
+                            <td class="red label-cell">Invoice Date<br/>تاريخ الفاتورة</td>
+                            <td><t t-esc="o.invoice_date"/></td>
+                        </tr>
+                        <tr>
+                            <td class="red label-cell">Customer ID<br/>رقم العميل</td>
+                            <td><t t-esc="o.partner_id.ref or ''"/></td>
+                            <td class="red label-cell">PO No.<br/>رقم أمر الشراء</td>
+                            <td><t t-esc="o.invoice_origin or ''"/></td>
+                        </tr>
+                        <tr>
+                            <td class="red label-cell">Delivery Note No.<br/>رقم مذكرة التسليم</td>
+                            <td></td>
+                            <td class="red label-cell">Payment Terms<br/>شروط الدفع</td>
+                            <td><t t-esc="o.invoice_payment_term_id.name"/></td>
+                        </tr>
+                    </table>
+
+                    <br/>
+
+                    <!-- ================= LINE ITEMS ================= -->
+                    <table>
+                        <thead>
+                            <tr class="red center">
+                                <th style="width:5%;">L/I</th>
+                                <th style="width:35%;">Description<br/>الوصف</th>
+                                <th style="width:8%;">Qty<br/>الكمية</th>
+                                <th style="width:10%;">UOM<br/>الوحدة</th>
+                                <th style="width:12%;">Rental Days<br/>أيام التأجير</th>
+                                <th style="width:15%;">Unit Price (USD)<br/>سعر الوحدة</th>
+                                <th style="width:15%;">Total Amount (USD)<br/>الإجمالي</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-set="sr" t-value="1"/>
+                            <t t-foreach="o.invoice_line_ids" t-as="line">
+                                <tr>
+                                    <td class="center"><t t-esc="sr"/></td>
+                                    <td><t t-esc="line.name"/></td>
+                                    <td class="center"><t t-esc="line.quantity"/></td>
+                                    <td class="center"><t t-esc="line.product_uom_id.name"/></td>
+                                    <td class="center">-</td>
+                                    <td class="right"><t t-esc="line.price_unit"/></td>
+                                    <td class="right label-cell-righ"><t t-esc="line.price_subtotal"/></td>
+                                </tr>
+                                <t t-set="sr" t-value="sr + 1"/>
+                            </t>
+                        </tbody>
+                    </table>
+
+                    <br/>
+
+                    <!-- ================= TOTALS ================= -->
+                    <!-- ================= TOTALS ================= -->
+                <table>
+                    <colgroup>
+                        <col style="width:80%;"/>
+                        <col style="width:20%;"/>
+                    </colgroup>
+
+                    <!-- Total Excluding VAT -->
+                    <tr>
+                        <td>
+                            <table width="100%" style="border:none;">
+                                <tr>
+                                    <td style="border:none; text-align:left;" class="label-cell">
+                                        Total Excluding VAT
+                                    </td>
+                                    <td style="border:none; text-align:right; direction:rtl;">
+                                        المجموع قبل الضريبة
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td class="total-amount">
+                            <t t-esc="o.amount_untaxed"/>
+                        </td>
+                    </tr>
+
+                    <!-- Total VAT 15% -->
+                    <tr>
+                        <td>
+                            <table width="100%" style="border:none;">
+                                <tr>
+                                    <td style="border:none; text-align:left;" class="label-cell">
+                                        Total VAT 15%
+                                    </td>
+                                    <td style="
+                                        border:none;
+                                        text-align:right;
+                                        direction:rtl;
+                                        unicode-bidi:isolate;
+                                        width:50%;
+                                    ">
+                                        <span style="display:block;">
+                                            مجموع ضريبة القيمة المضافة 
+                                        </span>
+                                    </td>
+                                                    </tr>
+                            </table>
+                        </td>
+                        <td class="total-amount">
+                            <t t-esc="o.amount_tax"/>
+                        </td>
+                    </tr>
+
+                    <!-- Total Amount -->
+                    <tr>
+                        <td>
+                            <table width="100%" style="border:none;">
+                                <tr>
+                                    <td style="border:none; text-align:left;" class="label-cell">
+                                        <strong>Total Amount</strong>
+                                    </td>
+                                    <td style="border:none; text-align:right; direction:rtl;">
+                                        <strong>المجموع الإجمالي</strong>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td class="total-amount">
+                            <strong><t t-esc="o.amount_total"/></strong>
+                        </td>
+                    </tr>
+                </table>
+
+
+                    
+
+                    <br/>
+
+                    <!-- ================= BANK DETAILS ================= -->
+                    <table>
+                        <tr>
+                            <td width="50%" class="label-cell">
+                                <strong>BANK DETAILS</strong><br/>
+                                Bank: ARAB NATIONAL BANK<br/>
+                                Account Name: Energy Services LTD CO<br/>
+                                Account Number: 0108095378110018<br/>
+                                IBAN: SA0230400108095378110018
+                            </td>
+                            <td width="50%" class="label-cell">
+                                Address: KING FAISAL STREET NORTH MURABA<br/>
+                                CITY: RIYADH<br/>
+                                ZIP: 11564<br/>
+                                COUNTRY: Saudi Arabia<br/>
+                                Swift Code: ARNBSARI
+                            </td>
+                        </tr>
+                    </table>
+
+                </div>
+
+            </t>
+        </t>
+    </t>
+
+</t>
+</template>
+
+</odoo>

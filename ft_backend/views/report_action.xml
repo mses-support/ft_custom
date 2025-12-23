@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="action_vat_invoice_report" model="ir.actions.report">
+        <field name="name">VAT Invoice</field>
+        <field name="model">account.move</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">ft_backend.invoice_report_template</field>
+        <field name="report_file">ft_backend.invoice_report_template</field>
+
+        <!-- THIS MAKES IT APPEAR IN PRINT MENU -->
+        <field name="binding_model_id" ref="account.model_account_move"/>
+        <field name="binding_type">report</field>
+
+        <!-- Optional -->
+        <field name="print_report_name">'VAT Invoice - %s' % (object.name)</field>
+    </record>
+
+</odoo>
