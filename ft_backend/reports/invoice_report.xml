@@ -269,6 +269,17 @@
                                 Account Name: Energy Services LTD CO<br/>
                                 Account Number: 0108095378110018<br/>
                                 IBAN: SA0230400108095378110018
+
+                                <!-- ================= ZATCA QR CODE ================= -->
+                        <div id="l10n_sa_qr_code" class="row avoid-page-break-inside">
+                                        <p class="col-6 position-relative m-0">
+                                            <img t-if="o._l10n_sa_is_legal() and o.l10n_sa_qr_code_str"
+                                                class="d-block"
+                                                t-att-src="'/report/barcode/?barcode_type=%s&amp;value=%s&amp;width=%s&amp;height=%s'%('QR', quote_plus(o.l10n_sa_qr_code_str), 130, 130)"/>
+                                        </p>
+                        </div>
+
+
                             </td>
                             <td width="50%" class="label-cell">
                                 Address: KING FAISAL STREET NORTH MURABA<br/>
@@ -277,6 +288,7 @@
                                 COUNTRY: Saudi Arabia<br/>
                                 Swift Code: ARNBSARI
                             </td>
+
                         </tr>
                     </table>
 
