@@ -1,0 +1,5 @@
+<odoo>
+    <record id="group_po_level2_approver" model="res.groups">
+        <field name="name">PO Level 2 Approver</field>
+    </record>
+</odoo>

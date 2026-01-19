@@ -1,0 +1,49 @@
+<odoo>
+
+    <record id="purchase_order_form_ui_approval" model="ir.ui.view">
+        <field name="name">purchase.order.form.ui.approval</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+
+            <!-- CONFIRM BUTTON: SHOW ONLY AFTER APPROVAL -->
+<xpath expr="//button[@id='bid_confirm']" position="attributes">
+    <attribute name="invisible">state == 'purchase' or (need_second_level and not lvl2_approved) or (not need_second_level and not lvl1_approved)</attribute>
+</xpath>
+
+
+
+<xpath expr="//button[@id='draft_confirm']" position="attributes">
+    <attribute name="invisible">1</attribute>
+</xpath>
+
+
+            <!-- LEVEL 1 -->
+            <xpath expr="//header" position="inside">
+       <button name="action_approve_level1"
+        type="object"
+        string="Level 1 Approve"
+        class="btn-primary"
+          invisible="state not in ('draft','sent')"/>
+            </xpath>
+
+            <!-- LEVEL 2 -->
+            <xpath expr="//header" position="inside">
+        <button name="action_approve_level2"
+        type="object"
+        string="Level 2 Approve"
+        class="btn-success"
+           groups="ft_backend.group_po_level2_approver"
+        invisible="state != 'to_approve_lvl2' or lvl2_approved"/>
+            </xpath>
+
+            <!-- STATUS BAR -->
+            <xpath expr="//field[@name='state']" position="replace">
+                <field name="state" widget="statusbar"
+                       statusbar_visible="draft,sent,to_approve_lvl1,to_approve_lvl2,purchase,done"/>
+            </xpath>
+
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="email_template_iqama_expiry" model="mail.template">
+        <field name="name">Iqama Expiry Reminder</field>
+        <field name="model_id" ref="hr.model_hr_employee"/>
+
+        <!-- SUBJECT (Jinja) -->
+        <field name="subject">
+            Iqama Expiry Reminder - {{ object.name }}
+        </field>
+
+        <!-- EMAIL FROM (Jinja) -->
+        <field name="email_from">
+            {{ object.company_id.email or user.email_formatted }}
+        </field>
+
+        <!-- EMAIL TO (Jinja) -->
+        <field name="email_to">
+            {{ object.work_email }}
+        </field>
+
+        <!-- BODY (QWeb only) -->
+        <field name="body_html" type="html">
+            <div style="margin:0; padding:0;">
+                <p style="font-size:13px;">
+                    Dear <strong><t t-out="object.name"/></strong>,
+                    <br/><br/>
+
+                    This is a reminder that your <strong>Iqama</strong>
+                    <t t-if="object.iqama_number">
+                        (Number: <strong><t t-out="object.iqama_number"/></strong>)
+                    </t>
+                    will expire on
+                    <strong><t t-out="object.iqama_expiry_date"/></strong>.
+                    <br/><br/>
+
+                    Please initiate the renewal process at the earliest.
+                    <br/><br/>
+
+                    Regards,<br/>
+                    <strong>HR Department</strong>
+                </p>
+            </div>
+        </field>
+
+        <field name="auto_delete" eval="True"/>
+    </record>
+
+</odoo>

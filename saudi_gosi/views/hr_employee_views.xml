@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Inherits and modifies the hr.employee form view to add GOSI-related fields and employee age/limit fields.-->
+    <record id="view_employee_form_inherit_saudi_gosi" model="ir.ui.view">
+    <field name="name">hr.employee.form.inherit.saudi.gosi</field>
+    <field name="model">hr.employee</field>
+    <field name="inherit_id" ref="hr.view_employee_form"/>
+    <field name="arch" type="xml">
+
+        <!-- ============================= -->
+        <!-- Add fields at END of Personal page -->
+        <!-- ============================= -->
+        <xpath expr="//page[@name='personal_information']/group"
+               position="inside">
+            <group string="Additional Information">
+                <field name="limit"/>
+                <field name="age"/>
+            </group>
+        </xpath>
+
+        <!-- ============================= -->
+        <!-- GOSI Information Page -->
+        <!-- ============================= -->
+        <xpath expr="//page[@name='hr_settings']" position="after">
+            <page name="gosi_info"
+                  string="GOSI Information"
+                  invisible="not limit"
+                  groups="hr.group_hr_user">
+                <group col="4">
+                    <field name="type"/>
+                    <field name="gosi_number"/>
+                    <field name="issue_date"/>
+                </group>
+            </page>
+        </xpath>
+
+    </field>
+</record>
+
+</odoo>
