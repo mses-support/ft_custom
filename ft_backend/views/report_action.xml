@@ -16,4 +16,19 @@
         <field name="print_report_name">'VAT Invoice - %s' % (object.name)</field>
     </record>
 
+    <record id="action_purchase_order_report" model="ir.actions.report">
+        <field name="name">Purchase Order(Energy Services)</field>
+        <field name="model">purchase.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">ft_backend.purchase_order_report_template</field>
+        <field name="report_file">ft_backend.purchase_order_report_template</field>
+
+        <!-- THIS MAKES IT APPEAR IN PRINT MENU -->
+        <field name="binding_model_id" ref="purchase.model_purchase_order"/>
+        <field name="binding_type">report</field>
+
+        <!-- Optional -->
+        <field name="print_report_name">'PO - %s' % (object.name)</field>
+    </record>
+
 </odoo>

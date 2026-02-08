@@ -10,7 +10,8 @@
         "views/purchase_view.xml",
         "views/company_view.xml",
         'views/hr_employee_view.xml',
-        "reports/invoice_report.xml"
+        "reports/invoice_report.xml",
+        "reports/purchase_order_report.xml"
     ],
     "installable": True
 }
