@@ -1,0 +1,27 @@
+<odoo>
+
+    <record id="view_company_form_po_limits" model="ir.ui.view">
+        <field name="name">res.company.form.po.limits</field>
+        <field name="model">res.company</field>
+        <field name="inherit_id" ref="base.view_company_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Add new block in Company form -->
+            <xpath expr="//sheet/notebook" position="inside">
+
+                <page string="Purchase Limits"
+                      groups="ft_backend.group_po_level2_approver">
+
+                    <group>
+                        <field name="po_daily_limit"/>
+                        <field name="po_monthly_limit"/>
+                    </group>
+
+                </page>
+
+            </xpath>
+
+        </field>
+    </record>
+
+</odoo>

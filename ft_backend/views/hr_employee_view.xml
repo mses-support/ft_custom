@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_hr_employee_form_inherit_allowances" model="ir.ui.view">
+        <field name="name">hr.employee.form.allowances.after.wage</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Insert AFTER wage row -->
+            <xpath expr="//div[@name='wage']" position="after">
+
+                <label for="housing_allowance"/>
+                <div class="o_row">
+                    <field name="housing_allowance" class="oe_inline o_hr_narrow_field"/>
+                </div>
+
+                <label for="transportation_allowance"/>
+                <div class="o_row">
+                    <field name="transportation_allowance" class="oe_inline o_hr_narrow_field"/>
+                </div>
+
+                <label for="communication_allowance"/>
+                <div class="o_row">
+                    <field name="communication_allowance" class="oe_inline o_hr_narrow_field"/>
+                </div>
+
+                <label for="mileage_allowance"/>
+                <div class="o_row">
+                    <field name="mileage_allowance" class="oe_inline o_hr_narrow_field"/>
+                </div>
+
+                <label for="other_allowance"/>
+                <div class="o_row">
+                    <field name="other_allowance" class="oe_inline o_hr_narrow_field"/>
+                </div>
+
+                <label for="net_salary"/>
+                <div class="o_row">
+                    <field name="net_salary"
+                           class="oe_inline o_hr_narrow_field fw-bold"
+                           readonly="1"/>
+                </div>
+
+            </xpath>
+
+           <xpath expr="//group[@name='citizenship']" position="inside">
+
+    <separator string="Iqama Details"/>
+
+    <field name="iqama_number"/>
+
+    <label for="iqama_expiry_date"/>
+    <div class="o_wrap_label d-flex flex-row gap-3 align-items-baseline">
+        <field name="iqama_expiry_date"/>
+        <label for="iqama_reminder_days" class="flex-shrink-0" string="Reminder (Days)"/>
+        <field name="iqama_reminder_days" class="o_hr_narrow_field"/>
+    </div>
+
+</xpath>
+
+
+        </field>
+    </record>
+
+</odoo>
