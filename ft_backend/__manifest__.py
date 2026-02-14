@@ -8,6 +8,7 @@
         'data/ir_cron.xml',
         "views/report_action.xml",
         "views/purchase_view.xml",
+        "views/account_move_view.xml",
         "views/company_view.xml",
         'views/hr_employee_view.xml',
         "reports/invoice_report.xml",

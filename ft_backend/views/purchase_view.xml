@@ -17,6 +17,14 @@
     <attribute name="invisible">1</attribute>
 </xpath>
 
+            <xpath expr="//field[@name='partner_ref']" position="after">
+                <field name="delivery_address_id"
+                       widget="res_partner_many2one"
+                       options="{'always_reload': True}"
+                       placeholder="Select Delivery Address"
+                       readonly="state in ['cancel', 'purchase']"/>
+            </xpath>
+
 
             <!-- LEVEL 1 -->
             <xpath expr="//header" position="inside">

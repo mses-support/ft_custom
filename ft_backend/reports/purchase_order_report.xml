@@ -120,18 +120,49 @@
                                             , <t t-esc="o.partner_id.country_id.name"/>
                                         </t><br/>
                                         <span class="label">Contact:</span>
-                                        <t t-esc="o.partner_id.phone or o.partner_id.mobile or ''"/><br/>
+                                        <t t-esc="o.partner_id.phone or (o.partner_id._fields.get('mobile') and o.partner_id.mobile) or ''"/><br/>
                                         <span class="label">VAT/Tax ID:</span>
                                         <t t-esc="o.partner_id.vat or ''"/>
                                     </td>
                                     <td>
-                                        <span class="ship-name">Energy Services Ltd. Co.</span><br/>
-                                        Al Dammam 1174, 2nd Industrial<br/>
-                                        City,2950(PC: 34327)Buqayq Main<br/>
-                                        Road, Kingdom of Saudi Arabia<br/>
-                                        <span class="label">Phone:</span> +966-<br/>
-                                        <span class="label">Email:</span> s.thomas@mses.energy<br/>
-                                        <span class="label">VAT:</span> 310316882900003
+                                        <t t-if="o.delivery_address_id">
+                                            <span class="ship-name"><t t-esc="o.delivery_address_id.name"/></span><br/>
+                                            <t t-esc="o.delivery_address_id.street or ''"/>
+                                            <t t-if="o.delivery_address_id.street2">
+                                                , <t t-esc="o.delivery_address_id.street2"/>
+                                            </t>
+                                            <t t-if="o.delivery_address_id.city">
+                                                , <t t-esc="o.delivery_address_id.city"/>
+                                            </t>
+                                            <t t-if="o.delivery_address_id.state_id">
+                                                , <t t-esc="o.delivery_address_id.state_id.name"/>
+                                            </t>
+                                            <t t-if="o.delivery_address_id.zip">
+                                                , <t t-esc="o.delivery_address_id.zip"/>
+                                            </t>
+                                            <t t-if="o.delivery_address_id.country_id">
+                                                , <t t-esc="o.delivery_address_id.country_id.name"/>
+                                            </t><br/>
+                                            <span class="label">Phone:</span>
+                                            <t t-esc="o.delivery_address_id.phone or (o.delivery_address_id._fields.get('mobile') and o.delivery_address_id.mobile) or ''"/><br/>
+                                            <t t-if="o.delivery_address_id.email">
+                                                <span class="label">Email:</span>
+                                                <t t-esc="o.delivery_address_id.email"/><br/>
+                                            </t>
+                                            <t t-if="o.delivery_address_id.vat">
+                                                <span class="label">VAT:</span>
+                                                <t t-esc="o.delivery_address_id.vat"/>
+                                            </t>
+                                        </t>
+                                        <t t-else="">
+                                            <span class="ship-name">Energy Services Ltd. Co.</span><br/>
+                                            Al Dammam 1174, 2nd Industrial<br/>
+                                            City,2950(PC: 34327)Buqayq Main<br/>
+                                            Road, Kingdom of Saudi Arabia<br/>
+                                            <span class="label">Phone:</span> +966-<br/>
+                                            <span class="label">Email:</span> s.thomas@mses.energy<br/>
+                                            <span class="label">VAT:</span> 310316882900003
+                                        </t>
                                     </td>
                                 </tr>
                             </table>
