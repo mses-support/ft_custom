@@ -6,6 +6,16 @@ from dateutil.relativedelta import relativedelta
 class PurchaseOrder(models.Model):
     _inherit = "purchase.order"
 
+    @api.model
+    def _default_delivery_address_id(self):
+        prefix = "ELDA8353"
+        partner = self.env["res.partner"].search([
+            "|",
+            ("name", "=ilike", f"{prefix}%"),
+            ("ref", "=ilike", f"{prefix}%"),
+        ], limit=1)
+        return partner.id
+
     state = fields.Selection(selection_add=[
         ('to_approve_lvl1', 'Waiting Level 1 Approval'),
         ('to_approve_lvl2', 'Waiting Level 2 Approval'),
@@ -15,6 +25,12 @@ class PurchaseOrder(models.Model):
 
     lvl1_approved = fields.Boolean(default=False)
     lvl2_approved = fields.Boolean(default=False)
+    delivery_address_id = fields.Many2one(
+        "res.partner",
+        required=True,
+        string="Delivery Address",
+        default=_default_delivery_address_id,
+    )
 
     # ------------------------------------------------
     # Rules
@@ -89,8 +105,6 @@ class PurchaseOrder(models.Model):
             order.state = 'sent'
             order.button_confirm()   # ✅ CONFIRM
         return True
-
-
 
 
 
