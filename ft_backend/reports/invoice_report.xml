@@ -111,15 +111,28 @@
                 <t t-esc="o.partner_id.vat"/>
             </t>
             <t t-else="">-</t><br/>
-            الرقم الضريبي
+             الرقم الضريبي: 
+            <t t-if="o.partner_id.vat_arabic">
+                <t t-esc="o.partner_id.vat_arabic"/>
+            </t>
+            <t t-else="">-</t><br/>
+           
         </td>
     </tr>
 
     <tr>
         <!-- LEFT : COMPANY VAT -->
         <td class="label-cell">
-            VAT No:310316882900003<br/>
-            الرقم الضريبي:  310316882900003
+            VAT No:
+            <t t-if="o.company_id.partner_id.vat">
+                <t t-esc="o.company_id.partner_id.vat"/>
+            </t>
+            <t t-else="">-</t><br/>
+            الرقم الضريبي:
+            <t t-if="o.company_id.partner_id.vat_arabic">
+                <t t-esc="o.company_id.partner_id.vat_arabic"/>
+            </t>
+            <t t-else="">-</t>
         </td>
 
         <!-- RIGHT : EMPTY (as per screenshot spacing) -->
