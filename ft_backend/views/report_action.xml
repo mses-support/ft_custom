@@ -16,6 +16,19 @@
         <field name="print_report_name">'VAT Invoice - %s' % (object.name)</field>
     </record>
 
+    <record id="action_vat_invoice_report_no_header_footer" model="ir.actions.report">
+        <field name="name">VAT Invoice (No Header/Footer)</field>
+        <field name="model">account.move</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">ft_backend.invoice_report_template_no_header_footer</field>
+        <field name="report_file">ft_backend.invoice_report_template_no_header_footer</field>
+
+        <field name="binding_model_id" ref="account.model_account_move"/>
+        <field name="binding_type">report</field>
+
+        <field name="print_report_name">'VAT Invoice NHF - %s' % (object.name)</field>
+    </record>
+
     <record id="action_purchase_order_report" model="ir.actions.report">
         <field name="name">Purchase Order(Energy Services)</field>
         <field name="model">purchase.order</field>

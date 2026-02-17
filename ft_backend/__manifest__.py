@@ -13,6 +13,7 @@
         "views/res_partner_view.xml",
         'views/hr_employee_view.xml',
         "reports/invoice_report.xml",
+        "reports/invoice_report_no_header_footer.xml",
         "reports/purchase_order_report.xml"
     ],
     "installable": True
