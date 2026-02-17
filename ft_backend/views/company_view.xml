@@ -8,6 +8,25 @@
 
             <!-- Add new block in Company form -->
             <xpath expr="//sheet/notebook" position="inside">
+                <page string="Arabic Details">
+                    <group>
+                        <group>
+                            <field name="name_arabic" placeholder="اسم الشركة بالعربية"/>
+                            <field name="company_registry_arabic" placeholder="رقم السجل التجاري بالعربية"/>
+                            <field name="vat_arabic" placeholder="رقم ضريبة القيمة المضافة بالعربية"/>
+                        </group>
+                        <group>
+                            <field name="street_arabic" placeholder="الشارع بالعربية"/>
+                            <field name="street2_arabic" placeholder="الشارع 2 بالعربية"/>
+                            <field name="city_arabic" placeholder="المدينة بالعربية"/>
+                            <field name="zip_arabic" placeholder="الرمز البريدي بالعربية"/>
+                            <field name="country_arabic" placeholder="الدولة بالعربية"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="address_arabic" placeholder="العنوان الكامل بالعربية"/>
+                    </group>
+                </page>
 
                 <page string="Purchase Limits"
                       groups="ft_backend.group_po_level2_approver">

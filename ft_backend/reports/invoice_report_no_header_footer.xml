@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
 
-<template id="invoice_report_template">
-<t t-name="ft_backend.invoice_report_template">
+<template id="invoice_report_template_no_header_footer">
+<t t-name="ft_backend.invoice_report_template_no_header_footer">
 
     <t t-foreach="docs" t-as="o">
         <t t-call="web.html_container">
-            <t t-call="web.external_layout">
-
+            <t>
+             <t t-call="web.basic_layout">
                 <style>
                     table {
                         border-collapse: collapse;
@@ -430,7 +430,7 @@
 
 
                 </div>
-
+                </t>
             </t>
         </t>
     </t>
