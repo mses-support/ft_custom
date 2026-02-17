@@ -70,6 +70,18 @@
                         line-height: 1.35;
                     }
 
+                    .details-table {
+                        table-layout: fixed;
+                        width: 100%;
+                    }
+
+                    .details-table th,
+                    .details-table td {
+                        width: 50%;
+                        overflow-wrap: anywhere;
+                        word-break: break-word;
+                    }
+
                 </style>
 
                 <div class="page" style="font-size:12px;">
@@ -164,7 +176,7 @@
                         VAT Invoice / فاتورة ضريبية
                     </div>
 
-                    <table style="margin-top:4px;">
+                    <table class="details-table" style="margin-top:4px;">
                         <colgroup>
                             <col style="width:50%;"/>
                             <col style="width:50%;"/>
