@@ -48,97 +48,211 @@
                         padding-right: 12px !important;
                     }
 
+                    .vat-invoice-title {
+                        text-align: center;
+                        font-weight: bold;
+                        font-style: italic;
+                        text-decoration: underline;
+                    }
+
+                    .rtl-text {
+                        direction: rtl;
+                        text-align: right;
+                        unicode-bidi: isolate;
+                    }
+
+                    .red-black {
+                        background-color: #ff0000;
+                        color: #000;
+                    }
+
+                    .compact-cell {
+                        line-height: 1.35;
+                    }
+
                 </style>
 
                 <div class="page" style="font-size:12px;">
-                <!-- ================= INVOICE TITLE ================= -->
-                <div style="
-                    text-align:center;
-                    font-weight:bold;
-                    font-style:italic;
-                    font-size:16px;
-                    margin:10px 0 12px 0;
-                ">
-                    VAT Invoice / فاتورة ضريبية
-                </div>
+                    <t t-set="company_partner" t-value="o.company_id.partner_id"/>
+                    <t t-set="customer_partner" t-value="o.partner_id"/>
 
+                    <t t-set="company_name_ar"
+                       t-value="(company_partner._fields.get('name_arabic') and company_partner.name_arabic)
+                           or (company_partner._fields.get('name_ar') and company_partner.name_ar)
+                           or (company_partner._fields.get('arabic_name') and company_partner.arabic_name)
+                           or (o.company_id._fields.get('name_arabic') and o.company_id.name_arabic)
+                           or (o.company_id._fields.get('name_ar') and o.company_id.name_ar)
+                           or ''"/>
+                    <t t-set="customer_name_ar"
+                       t-value="(customer_partner._fields.get('name_arabic') and customer_partner.name_arabic)
+                           or (customer_partner._fields.get('name_ar') and customer_partner.name_ar)
+                           or (customer_partner._fields.get('arabic_name') and customer_partner.arabic_name)
+                           or ''"/>
 
-<table>
-    <colgroup>
-        <col style="width:50%;"/>
-        <col style="width:50%;"/>
-    </colgroup>
+                    <t t-set="company_address_ar_full"
+                       t-value="(company_partner._fields.get('address_arabic') and company_partner.address_arabic)
+                           or (company_partner._fields.get('contact_address_arabic') and company_partner.contact_address_arabic)
+                           or ''"/>
+                    <t t-set="company_street_ar"
+                       t-value="(company_partner._fields.get('street_arabic') and company_partner.street_arabic)
+                           or (company_partner._fields.get('street_ar') and company_partner.street_ar)
+                           or ''"/>
+                    <t t-set="company_street2_ar"
+                       t-value="(company_partner._fields.get('street2_arabic') and company_partner.street2_arabic)
+                           or (company_partner._fields.get('street2_ar') and company_partner.street2_ar)
+                           or ''"/>
+                    <t t-set="company_city_ar"
+                       t-value="(company_partner._fields.get('city_arabic') and company_partner.city_arabic)
+                           or (company_partner._fields.get('city_ar') and company_partner.city_ar)
+                           or ''"/>
+                    <t t-set="company_zip_ar"
+                       t-value="(company_partner._fields.get('zip_arabic') and company_partner.zip_arabic)
+                           or (company_partner._fields.get('zip_ar') and company_partner.zip_ar)
+                           or ''"/>
+                    <t t-set="company_country_ar"
+                       t-value="(company_partner._fields.get('country_arabic') and company_partner.country_arabic)
+                           or (company_partner.country_id and company_partner.country_id._fields.get('name_arabic') and company_partner.country_id.name_arabic)
+                           or ''"/>
+                    <t t-set="company_address_ar"
+                       t-value="company_address_ar_full or '، '.join([v for v in [company_street_ar, company_street2_ar, company_city_ar, company_zip_ar, company_country_ar] if v])"/>
 
-    <tr>
-        <!-- LEFT : COMPANY DETAILS -->
-        <td class="label-cell">
-            <strong>Building 3187 Al Ulaya, Al Khobar 34447, Office 109, Kingdom of Saudi Arabia</strong><br/>
-            المملكة العربية السعودية، الخبر، العليا، رقم المبنى 3187، مكتب 109
-        </td>
+                    <t t-set="customer_address_ar_full"
+                       t-value="(customer_partner._fields.get('address_arabic') and customer_partner.address_arabic)
+                           or (customer_partner._fields.get('contact_address_arabic') and customer_partner.contact_address_arabic)
+                           or ''"/>
+                    <t t-set="customer_street_ar"
+                       t-value="(customer_partner._fields.get('street_arabic') and customer_partner.street_arabic)
+                           or (customer_partner._fields.get('street_ar') and customer_partner.street_ar)
+                           or ''"/>
+                    <t t-set="customer_street2_ar"
+                       t-value="(customer_partner._fields.get('street2_arabic') and customer_partner.street2_arabic)
+                           or (customer_partner._fields.get('street2_ar') and customer_partner.street2_ar)
+                           or ''"/>
+                    <t t-set="customer_city_ar"
+                       t-value="(customer_partner._fields.get('city_arabic') and customer_partner.city_arabic)
+                           or (customer_partner._fields.get('city_ar') and customer_partner.city_ar)
+                           or ''"/>
+                    <t t-set="customer_zip_ar"
+                       t-value="(customer_partner._fields.get('zip_arabic') and customer_partner.zip_arabic)
+                           or (customer_partner._fields.get('zip_ar') and customer_partner.zip_ar)
+                           or ''"/>
+                    <t t-set="customer_country_ar"
+                       t-value="(customer_partner._fields.get('country_arabic') and customer_partner.country_arabic)
+                           or (customer_partner.country_id and customer_partner.country_id._fields.get('name_arabic') and customer_partner.country_id.name_arabic)
+                           or ''"/>
+                    <t t-set="customer_address_ar"
+                       t-value="customer_address_ar_full or '، '.join([v for v in [customer_street_ar, customer_street2_ar, customer_city_ar, customer_zip_ar, customer_country_ar] if v])"/>
 
-        <!-- RIGHT : CUSTOMER DETAILS -->
-         <td class="label-cell">
-            <strong>
-                <t t-esc="o.partner_id.name"/>
-            </strong><br/>
-            <t t-esc="o.partner_id.street or ''"/>
-            <t t-if="o.partner_id.street2">
-                , <t t-esc="o.partner_id.street2"/>
-            </t><br/>
-            <t t-if="o.partner_id.city">
-                <t t-esc="o.partner_id.city"/>
-            </t>
-            <t t-if="o.partner_id.zip">
-                , <t t-esc="o.partner_id.zip"/>
-            </t>
-            <t t-if="o.partner_id.country_id">
-                , <t t-esc="o.partner_id.country_id.name"/>
-            </t>
-        </td>
-    </tr>
+                    <t t-set="company_cr_no"
+                       t-value="o.company_id.company_registry or company_partner.company_registry or ''"/>
+                    <t t-set="company_cr_no_ar"
+                       t-value="(o.company_id._fields.get('company_registry_arabic') and o.company_id.company_registry_arabic)
+                           or (company_partner._fields.get('company_registry_arabic') and company_partner.company_registry_arabic)
+                           or (o.company_id._fields.get('company_registry_ar') and o.company_id.company_registry_ar)
+                           or (company_partner._fields.get('company_registry_ar') and company_partner.company_registry_ar)
+                           or company_cr_no"/>
+                    <t t-set="company_vat_ar"
+                       t-value="(company_partner._fields.get('vat_arabic') and company_partner.vat_arabic)
+                           or company_partner.vat
+                           or ''"/>
+                    <t t-set="customer_vat_ar"
+                       t-value="(customer_partner._fields.get('vat_arabic') and customer_partner.vat_arabic)
+                           or customer_partner.vat
+                           or ''"/>
 
-    <tr>
-        <!-- LEFT : CR NO -->
-        <td class="label-cell">
-            C.R. No: 2051224654<br/>
-            س.ت: 2051224654
-        </td>
+                    <div class="vat-invoice-title" style="margin-bottom:4px; border:none !important;">
+                        VAT Invoice / فاتورة ضريبية
+                    </div>
 
-        <!-- RIGHT : CUSTOMER VAT -->
-        <td class="label-cell">
-            VAT No: 
-            <t t-if="o.partner_id.vat">
-                <t t-esc="o.partner_id.vat"/>
-            </t>
-            <t t-else="">-</t><br/>
-             الرقم الضريبي: 
-            <t t-if="o.partner_id.vat_arabic">
-                <t t-esc="o.partner_id.vat_arabic"/>
-            </t>
-            <t t-else="">-</t><br/>
-           
-        </td>
-    </tr>
-
-    <tr>
-        <!-- LEFT : COMPANY VAT -->
-        <td class="label-cell">
-            VAT No:
-            <t t-if="o.company_id.partner_id.vat">
-                <t t-esc="o.company_id.partner_id.vat"/>
-            </t>
-            <t t-else="">-</t><br/>
-            الرقم الضريبي:
-            <t t-if="o.company_id.partner_id.vat_arabic">
-                <t t-esc="o.company_id.partner_id.vat_arabic"/>
-            </t>
-            <t t-else="">-</t>
-        </td>
-
-        <!-- RIGHT : EMPTY (as per screenshot spacing) -->
-        <td></td>
-    </tr>
-</table> <br/>
+                    <table style="margin-top:4px;">
+                        <colgroup>
+                            <col style="width:50%;"/>
+                            <col style="width:50%;"/>
+                        </colgroup>
+                        <tr>
+                            <th class="red-black center compact-cell">
+                                <t t-esc="company_partner.name or ''"/>
+                                <t t-if="company_name_ar">
+                                    <br/>
+                                    <span class="rtl-text"><t t-esc="company_name_ar"/></span>
+                                </t>
+                            </th>
+                            <th class="red-black center compact-cell">
+                                <t t-esc="customer_partner.name or ''"/>
+                                <t t-if="customer_name_ar">
+                                    <br/>
+                                    <span class="rtl-text"><t t-esc="customer_name_ar"/></span>
+                                </t>
+                            </th>
+                        </tr>
+                        <tr>
+                            <td class="label-cell compact-cell">
+                                <t t-esc="company_partner.street or ''"/>
+                                <t t-if="company_partner.street2">
+                                    , <t t-esc="company_partner.street2"/>
+                                </t>
+                                <t t-if="company_partner.city">
+                                    , <t t-esc="company_partner.city"/>
+                                </t>
+                                <t t-if="company_partner.zip">
+                                    , <t t-esc="company_partner.zip"/>
+                                </t>
+                                <t t-if="company_partner.country_id">
+                                    , <t t-esc="company_partner.country_id.name"/>
+                                </t>
+                                <t t-if="company_address_ar">
+                                    <br/>
+                                    <span class="rtl-text"><t t-esc="company_address_ar"/></span>
+                                </t>
+                            </td>
+                            <td class="label-cell compact-cell">
+                                <t t-esc="customer_partner.street or ''"/>
+                                <t t-if="customer_partner.street2">
+                                    , <t t-esc="customer_partner.street2"/>
+                                </t>
+                                <t t-if="customer_partner.city">
+                                    , <t t-esc="customer_partner.city"/>
+                                </t>
+                                <t t-if="customer_partner.zip">
+                                    , <t t-esc="customer_partner.zip"/>
+                                </t>
+                                <t t-if="customer_partner.country_id">
+                                    , <t t-esc="customer_partner.country_id.name"/>
+                                </t>
+                                <t t-if="customer_address_ar">
+                                    <br/>
+                                    <span class="rtl-text"><t t-esc="customer_address_ar"/></span>
+                                </t>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="label-cell compact-cell">
+                                C.R. No:
+                                <t t-esc="company_cr_no or '-'"/><br/>
+                                <span class="rtl-text">رقم السجل التجاري:
+                                    <t t-esc="company_cr_no_ar or '-'"/>
+                                </span>
+                            </td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td class="label-cell compact-cell">
+                                VAT No:
+                                <t t-esc="company_partner.vat or '-'"/><br/>
+                                <span class="rtl-text">الرقم الضريبي:
+                                    <t t-esc="company_vat_ar or '-'"/>
+                                </span>
+                            </td>
+                            <td class="label-cell compact-cell">
+                                Customer VAT No:
+                                <t t-esc="customer_partner.vat or '-'"/><br/>
+                                <span class="rtl-text">الرقم الضريبي للعميل:
+                                    <t t-esc="customer_vat_ar or '-'"/>
+                                </span>
+                            </td>
+                        </tr>
+                    </table>
+                    <br/>
 
 
                     <!-- ================= INVOICE INFO ================= -->
@@ -151,7 +265,7 @@
                         </tr>
                         <tr>
                             <td class="red label-cell">PO No.<br/>رقم أمر الشراء</td>
-                            <td><t t-esc="o.invoice_origin or ''"/></td>
+                            <td><t t-esc="o.ref or ''"/></td>
                             <td class="red label-cell">Payment Terms<br/>شروط الدفع</td>
                             <td><t t-esc="o.invoice_payment_term_id.name"/></td>
                         </tr>

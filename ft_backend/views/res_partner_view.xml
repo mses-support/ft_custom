@@ -6,9 +6,28 @@
         <field name="model">res.partner</field>
         <field name="inherit_id" ref="base.view_partner_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="name_arabic" placeholder="الاسم بالعربية"/>
+            </xpath>
+            <xpath expr="//field[@name='street2']" position="after">
+                <field name="street_arabic" placeholder="الشارع بالعربية"/>
+                <field name="street2_arabic" placeholder="الشارع 2 بالعربية"/>
+            </xpath>
+            <xpath expr="//field[@name='city']" position="after">
+                <field name="city_arabic" placeholder="المدينة بالعربية"/>
+            </xpath>
+            <xpath expr="//field[@name='zip']" position="after">
+                <field name="zip_arabic" placeholder="الرمز البريدي بالعربية"/>
+            </xpath>
+            <xpath expr="//field[@name='country_id']" position="after">
+                <field name="country_arabic" placeholder="الدولة بالعربية"/>
+                <field name="address_arabic" placeholder="العنوان بالعربية"/>
+            </xpath>
+            <xpath expr="//field[@name='company_registry']" position="after">
+                <field name="company_registry_arabic" placeholder="رقم السجل التجاري بالعربية"/>
+            </xpath>
             <xpath expr="//field[@name='vat']" position="after">
-                <field name="vat_arabic" placeholder="رقم ضريبة القيمة المضافة"
-/>
+                <field name="vat_arabic" placeholder="رقم ضريبة القيمة المضافة"/>
             </xpath>
         </field>
     </record>
