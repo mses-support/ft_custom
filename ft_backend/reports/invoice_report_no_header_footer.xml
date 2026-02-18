@@ -53,6 +53,42 @@
                         font-weight: bold;
                         font-style: italic;
                         text-decoration: underline;
+                        font-size: 16px;
+                        line-height: 1.1;
+                    }
+
+                    .company-main-title {
+                        text-align: center;
+                        margin-bottom: 4px;
+                        border: 0 !important;
+                        white-space: nowrap;
+                    }
+
+                    .company-main-title-en {
+                        display: inline-block;
+                        vertical-align: bottom;
+                        width: 49%;
+                        text-align: center;
+                        color: #C72300;
+                        font-weight: 700;
+                        font-size: 28px;
+                        text-decoration: underline;
+                        line-height: 1.1;
+                        white-space: nowrap;
+                    }
+
+                    .company-main-title-ar {
+                        display: inline-block;
+                        vertical-align: bottom;
+                        width: 49%;
+                        direction: rtl;
+                        unicode-bidi: isolate;
+                        text-align: center;
+                        color: #000;
+                        font-weight: 700;
+                        font-size: 28px;
+                        line-height: 1.1;
+                        white-space: nowrap;
                     }
 
                     .rtl-text {
@@ -171,6 +207,12 @@
                        t-value="(customer_partner._fields.get('vat_arabic') and customer_partner.vat_arabic)
                            or customer_partner.vat
                            or ''"/>
+
+                    <div class="company-main-title" style="border:0 !important;">
+                        <span class="company-main-title-en">ENERGY SERVICES LTD. CO.</span>
+                        <span class="company-main-title-ar">شركة الخدمات الطاقة المحدوده</span>
+                    </div>
+                    <br/>
 
                     <div class="vat-invoice-title" style="margin-bottom:4px; border:none !important;">
                         VAT Invoice / فاتورة ضريبية
@@ -397,36 +439,38 @@
                     <br/>
 
                     <!-- ================= BANK DETAILS ================= -->
-                    <table width="100%" style="border-collapse:collapse;">
-    <tr>
-        <!-- LEFT COLUMN -->
-        <td width="50%" class="label-cell" style="vertical-align:top;">
-            <strong>BANK DETAILS</strong><br/>
-            Bank: ARAB NATIONAL BANK<br/>
-            Account Name: Energy Services LTD CO<br/>
-            Account Number: 0108095378110018<br/>
-            IBAN: SA0230400108095378110018<br/><br/>
-
-            <!-- ZATCA QR CODE -->
-            <t t-if="o._l10n_sa_is_legal() and o.l10n_sa_qr_code_str">
-                <img
-                    t-att-src="'/report/barcode/?barcode_type=QR&amp;value=%s&amp;width=130&amp;height=130'
-                        % quote_plus(o.l10n_sa_qr_code_str)"
-                    style="display:block;margin-top:5px;"
-                />
-            </t>
-        </td>
-
-        <!-- RIGHT COLUMN -->
-        <td width="50%" class="label-cell" style="vertical-align:top;">
-            Address: KING FAISAL STREET NORTH MURABA<br/>
-            CITY: RIYADH<br/>
-            ZIP: 11564<br/>
-            COUNTRY: Saudi Arabia<br/>
-            Swift Code: ARNBSARI
-        </td>
-    </tr>
-</table>
+                    <table width="100%" style="border-collapse:collapse; border:none !important; table-layout:fixed;">
+                        <tr style="border:none !important;">
+                            <td width="58%" style="border:none !important; vertical-align:top; padding:0 8px 0 0;">
+                                <div style="border:1px solid #666; padding:8px 10px; width:78%; line-height:1.4;">
+                                    <strong>BANK DETAILS</strong><br/>
+                                    Bank: ARAB NATIONAL BANK<br/>
+                                    Account Name: Energy Services LTD CO<br/>
+                                    Account Number: 0108095378110018<br/>
+                                    IBAN: SA0230400108095378110018
+                                </div>
+                                <div style="height:14px;"></div>
+                                <div style="border:1px solid #666; padding:8px 10px; width:92%; line-height:1.35;">
+                                    Address: KING FAISAL STREET NORTH MURABA<br/>
+                                    CITY: RIYADH<br/>
+                                    ZIP: 11564<br/>
+                                    COUNTRY: Saudi Arabia<br/>
+                                    Swift Code: ARNBSARI
+                                </div>
+                            </td>
+                            <td width="42%" style="border:none !important; vertical-align:top; text-align:center; padding:0;">
+                                <t t-if="o._l10n_sa_is_legal() and o.l10n_sa_qr_code_str">
+                                    <div style="display:inline-block; border:1px solid #666; padding:6px;">
+                                        <img
+                                            t-att-src="'/report/barcode/?barcode_type=QR&amp;value=%s&amp;width=180&amp;height=180'
+                                                % quote_plus(o.l10n_sa_qr_code_str)"
+                                            style="display:block; width:180px; height:180px;"
+                                        />
+                                    </div>
+                                </t>
+                            </td>
+                        </tr>
+                    </table>
 
 
                 </div>
