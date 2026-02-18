@@ -77,6 +77,10 @@
                         white-space: nowrap;
                     }
 
+                    .company-main-title-en .title-suffix {
+                        color: #000;
+                    }
+
                     .company-main-title-ar {
                         display: inline-block;
                         vertical-align: bottom;
@@ -209,7 +213,7 @@
                            or ''"/>
 
                     <div class="company-main-title" style="border:0 !important;">
-                        <span class="company-main-title-en">ENERGY SERVICES LTD. CO.</span>
+                        <span class="company-main-title-en">ENERGY SERVICES <span class="title-suffix">LTD. CO.</span></span>
                         <span class="company-main-title-ar">شركة الخدمات الطاقة المحدوده</span>
                     </div>
                     <br/>
@@ -328,6 +332,9 @@
                     <br/>
 
                     <!-- ================= LINE ITEMS ================= -->
+                    <t t-set="currency_label" t-value="(o.currency_id and (o.currency_id.name or o.currency_id.symbol)) or 'USD'"/>
+                    <t t-set="currency_ar_map" t-value="{'USD': 'دولار أمريكي', 'SAR': 'ريال سعودي', 'EUR': 'يورو', 'GBP': 'جنيه إسترليني', 'AED': 'درهم إماراتي', 'QAR': 'ريال قطري', 'KWD': 'دينار كويتي', 'BHD': 'دينار بحريني', 'OMR': 'ريال عماني', 'JOD': 'دينار أردني', 'EGP': 'جنيه مصري', 'INR': 'روبية هندية', 'PKR': 'روبية باكستانية'}"/>
+                    <t t-set="currency_label_ar" t-value="currency_ar_map.get(currency_label, currency_label)"/>
                     <table>
                         <thead>
                             <tr class="red center">
@@ -336,8 +343,8 @@
                                 <th style="width:8%;">Qty<br/>الكمية</th>
                                 <th style="width:10%;">UOM<br/>الوحدة</th>
                                 <th style="width:12%;">Rental Days<br/>أيام التأجير</th>
-                                <th style="width:15%;">Unit Price (USD)<br/>سعر الوحدة بالدولار</th>
-                                <th style="width:15%;">Total Amount (USD)<br/>الإجمالي بالدولار</th>
+                                <th style="width:15%;">Unit Price (<t t-esc="currency_label"/>)<br/>سعر الوحدة (<t t-esc="currency_label_ar"/>)</th>
+                                <th style="width:15%;">Total Amount (<t t-esc="currency_label"/>)<br/>الإجمالي (<t t-esc="currency_label_ar"/>)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -441,16 +448,17 @@
                     <!-- ================= BANK DETAILS ================= -->
                     <table width="100%" style="border-collapse:collapse; border:none !important; table-layout:fixed;">
                         <tr style="border:none !important;">
-                            <td width="58%" style="border:none !important; vertical-align:top; padding:0 8px 0 0;">
-                                <div style="border:1px solid #666; padding:8px 10px; width:78%; line-height:1.4;">
+                            <td width="34%" style="border:none !important; vertical-align:top; padding:0 8px 0 0;">
+                                <div style="border:1px solid #666; padding:8px 10px; line-height:1.35;">
                                     <strong>BANK DETAILS</strong><br/>
                                     Bank: ARAB NATIONAL BANK<br/>
                                     Account Name: Energy Services LTD CO<br/>
                                     Account Number: 0108095378110018<br/>
                                     IBAN: SA0230400108095378110018
                                 </div>
-                                <div style="height:14px;"></div>
-                                <div style="border:1px solid #666; padding:8px 10px; width:92%; line-height:1.35;">
+                            </td>
+                            <td width="34%" style="border:none !important; vertical-align:top; padding:0 8px 0 0;">
+                                <div style="border:1px solid #666; padding:8px 10px; line-height:1.35;">
                                     Address: KING FAISAL STREET NORTH MURABA<br/>
                                     CITY: RIYADH<br/>
                                     ZIP: 11564<br/>
@@ -458,7 +466,7 @@
                                     Swift Code: ARNBSARI
                                 </div>
                             </td>
-                            <td width="42%" style="border:none !important; vertical-align:top; text-align:center; padding:0;">
+                            <td width="32%" style="border:none !important; vertical-align:top; text-align:center; padding:0;">
                                 <t t-if="o._l10n_sa_is_legal() and o.l10n_sa_qr_code_str">
                                     <div style="display:inline-block; border:1px solid #666; padding:6px;">
                                         <img
