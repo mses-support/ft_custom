@@ -122,6 +122,90 @@
                         word-break: break-word;
                     }
 
+                    .bank-details-section {
+                        page-break-inside: avoid !important;
+                        break-inside: avoid-page !important;
+                        display: block;
+                    }
+
+                    .bank-details-section .bank-details-box {
+                        page-break-inside: avoid !important;
+                        break-inside: avoid-page !important;
+                    }
+
+                    .bank-details-table {
+                        border-collapse: collapse;
+                        border: none !important;
+                        table-layout: fixed;
+                        width: 100%;
+                    }
+
+                    .bank-details-table td {
+                        border: none !important;
+                        padding: 0 8px 0 0 !important;
+                        vertical-align: top !important;
+                    }
+
+                    .bank-details-bank {
+                        width: 40%;
+                    }
+
+                    .bank-details-address {
+                        width: 30%;
+                    }
+
+                    .bank-details-qr {
+                        width: 30%;
+                    }
+
+                    .bank-details-table td:last-child {
+                        padding-right: 0 !important;
+                    }
+
+                    .bank-details-box {
+                        border: 1px solid #666;
+                        box-sizing: border-box;
+                        width: 100%;
+                        height: 194px;
+                        padding: 8px 10px;
+                        line-height: 1.35;
+                    }
+
+                    .bank-details-text {
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: space-between;
+                        font-size: 15px;
+                        line-height: 1.6;
+                    }
+
+                    .bank-details-text strong {
+                        display: block;
+                        font-size: 18px;
+                        line-height: 1.2;
+                    }
+
+                    .bank-details-text .bank-line {
+                        display: block;
+                    }
+
+                    .bank-details-bank .bank-details-box {
+                        border-right: 0;
+                    }
+
+                    .bank-details-box-qr {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        padding: 6px;
+                    }
+
+                    .bank-details-qr-image {
+                        display: block;
+                        width: 180px;
+                        height: 180px;
+                    }
+
                 </style>
 
                 <div class="page" style="font-size:12px;">
@@ -446,39 +530,41 @@
                     <br/>
 
                     <!-- ================= BANK DETAILS ================= -->
-                    <table width="100%" style="border-collapse:collapse; border:none !important; table-layout:fixed;">
-                        <tr style="border:none !important;">
-                            <td width="34%" style="border:none !important; vertical-align:top; padding:0 8px 0 0;">
-                                <div style="border:1px solid #666; padding:8px 10px; line-height:1.35;">
-                                    <strong>BANK DETAILS</strong><br/>
-                                    Bank: ARAB NATIONAL BANK<br/>
-                                    Account Name: Energy Services LTD CO<br/>
-                                    Account Number: 0108095378110018<br/>
-                                    IBAN: SA0230400108095378110018
-                                </div>
-                            </td>
-                            <td width="34%" style="border:none !important; vertical-align:top; padding:0 8px 0 0;">
-                                <div style="border:1px solid #666; padding:8px 10px; line-height:1.35;">
-                                    Address: KING FAISAL STREET NORTH MURABA<br/>
-                                    CITY: RIYADH<br/>
-                                    ZIP: 11564<br/>
-                                    COUNTRY: Saudi Arabia<br/>
-                                    Swift Code: ARNBSARI
-                                </div>
-                            </td>
-                            <td width="32%" style="border:none !important; vertical-align:top; text-align:center; padding:0;">
-                                <t t-if="o._l10n_sa_is_legal() and o.l10n_sa_qr_code_str">
-                                    <div style="display:inline-block; border:1px solid #666; padding:6px;">
-                                        <img
-                                            t-att-src="'/report/barcode/?barcode_type=QR&amp;value=%s&amp;width=180&amp;height=180'
-                                                % quote_plus(o.l10n_sa_qr_code_str)"
-                                            style="display:block; width:180px; height:180px;"
-                                        />
+                    <div class="bank-details-section" style="page-break-inside:avoid; break-inside:avoid-page;">
+                        <table class="bank-details-table" width="100%">
+                            <tr style="border:none !important;">
+                                <td class="bank-details-bank">
+                                    <div class="bank-details-box bank-details-text">
+                                        <strong>BANK DETAILS</strong>
+                                        <span class="bank-line">Bank: ARAB NATIONAL BANK</span>
+                                        <span class="bank-line">Account Name: Energy Services LTD CO</span>
+                                        <span class="bank-line">Account Number: 0108095378110018</span>
+                                        <span class="bank-line">IBAN: SA0230400108095378110018</span>
                                     </div>
-                                </t>
-                            </td>
-                        </tr>
-                    </table>
+                                </td>
+                                <td class="bank-details-address">
+                                    <div class="bank-details-box bank-details-text">
+                                        <span class="bank-line">Address: KING FAISAL STREET NORTH MURABA</span>
+                                        <span class="bank-line">CITY: RIYADH</span>
+                                        <span class="bank-line">ZIP: 11564</span>
+                                        <span class="bank-line">COUNTRY: Saudi Arabia</span>
+                                        <span class="bank-line">Swift Code: ARNBSARI</span>
+                                    </div>
+                                </td>
+                                <td class="bank-details-qr">
+                                    <t t-if="o._l10n_sa_is_legal() and o.l10n_sa_qr_code_str">
+                                        <div class="bank-details-box bank-details-box-qr">
+                                            <img
+                                                t-att-src="'/report/barcode/?barcode_type=QR&amp;value=%s&amp;width=180&amp;height=180'
+                                                    % quote_plus(o.l10n_sa_qr_code_str)"
+                                                class="bank-details-qr-image"
+                                            />
+                                        </div>
+                                    </t>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
 
 
                 </div>
