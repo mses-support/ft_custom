@@ -53,6 +53,46 @@
                         font-weight: bold;
                         font-style: italic;
                         text-decoration: underline;
+                        font-size: 16px;
+                        line-height: 1.1;
+                    }
+
+                    .company-main-title {
+                        text-align: center;
+                        margin-bottom: 4px;
+                        border: 0 !important;
+                        white-space: nowrap;
+                    }
+
+                    .company-main-title-en {
+                        display: inline-block;
+                        vertical-align: bottom;
+                        width: 49%;
+                        text-align: center;
+                        color: #C72300;
+                        font-weight: 700;
+                        font-size: 28px;
+                        text-decoration: underline;
+                        line-height: 1.1;
+                        white-space: nowrap;
+                    }
+
+                    .company-main-title-en .title-suffix {
+                        color: #000;
+                    }
+
+                    .company-main-title-ar {
+                        display: inline-block;
+                        vertical-align: bottom;
+                        width: 49%;
+                        direction: rtl;
+                        unicode-bidi: isolate;
+                        text-align: center;
+                        color: #000;
+                        font-weight: 700;
+                        font-size: 28px;
+                        line-height: 1.1;
+                        white-space: nowrap;
                     }
 
                     .rtl-text {
@@ -80,6 +120,90 @@
                         width: 50%;
                         overflow-wrap: anywhere;
                         word-break: break-word;
+                    }
+
+                    .bank-details-section {
+                        page-break-inside: avoid !important;
+                        break-inside: avoid-page !important;
+                        display: block;
+                    }
+
+                    .bank-details-section .bank-details-box {
+                        page-break-inside: avoid !important;
+                        break-inside: avoid-page !important;
+                    }
+
+                    .bank-details-table {
+                        border-collapse: collapse;
+                        border: none !important;
+                        table-layout: fixed;
+                        width: 100%;
+                    }
+
+                    .bank-details-table td {
+                        border: none !important;
+                        padding: 0 8px 0 0 !important;
+                        vertical-align: top !important;
+                    }
+
+                    .bank-details-bank {
+                        width: 40%;
+                    }
+
+                    .bank-details-address {
+                        width: 30%;
+                    }
+
+                    .bank-details-qr {
+                        width: 30%;
+                    }
+
+                    .bank-details-table td:last-child {
+                        padding-right: 0 !important;
+                    }
+
+                    .bank-details-box {
+                        border: 1px solid #666;
+                        box-sizing: border-box;
+                        width: 100%;
+                        height: 194px;
+                        padding: 8px 10px;
+                        line-height: 1.35;
+                    }
+
+                    .bank-details-text {
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: space-between;
+                        font-size: 15px;
+                        line-height: 1.6;
+                    }
+
+                    .bank-details-text strong {
+                        display: block;
+                        font-size: 18px;
+                        line-height: 1.2;
+                    }
+
+                    .bank-details-text .bank-line {
+                        display: block;
+                    }
+
+                    .bank-details-bank .bank-details-box {
+                        border-right: 0;
+                    }
+
+                    .bank-details-box-qr {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        padding: 6px;
+                    }
+
+                    .bank-details-qr-image {
+                        display: block;
+                        width: 180px;
+                        height: 180px;
                     }
 
                 </style>
@@ -171,6 +295,12 @@
                        t-value="(customer_partner._fields.get('vat_arabic') and customer_partner.vat_arabic)
                            or customer_partner.vat
                            or ''"/>
+
+                    <div class="company-main-title" style="border:0 !important;">
+                        <span class="company-main-title-en">ENERGY SERVICES <span class="title-suffix">LTD. CO.</span></span>
+                        <span class="company-main-title-ar">شركة الخدمات الطاقة المحدوده</span>
+                    </div>
+                    <br/>
 
                     <div class="vat-invoice-title" style="margin-bottom:4px; border:none !important;">
                         VAT Invoice / فاتورة ضريبية
@@ -286,6 +416,9 @@
                     <br/>
 
                     <!-- ================= LINE ITEMS ================= -->
+                    <t t-set="currency_label" t-value="(o.currency_id and (o.currency_id.name or o.currency_id.symbol)) or 'USD'"/>
+                    <t t-set="currency_ar_map" t-value="{'USD': 'دولار أمريكي', 'SAR': 'ريال سعودي', 'EUR': 'يورو', 'GBP': 'جنيه إسترليني', 'AED': 'درهم إماراتي', 'QAR': 'ريال قطري', 'KWD': 'دينار كويتي', 'BHD': 'دينار بحريني', 'OMR': 'ريال عماني', 'JOD': 'دينار أردني', 'EGP': 'جنيه مصري', 'INR': 'روبية هندية', 'PKR': 'روبية باكستانية'}"/>
+                    <t t-set="currency_label_ar" t-value="currency_ar_map.get(currency_label, currency_label)"/>
                     <table>
                         <thead>
                             <tr class="red center">
@@ -294,8 +427,8 @@
                                 <th style="width:8%;">Qty<br/>الكمية</th>
                                 <th style="width:10%;">UOM<br/>الوحدة</th>
                                 <th style="width:12%;">Rental Days<br/>أيام التأجير</th>
-                                <th style="width:15%;">Unit Price (USD)<br/>سعر الوحدة بالدولار</th>
-                                <th style="width:15%;">Total Amount (USD)<br/>الإجمالي بالدولار</th>
+                                <th style="width:15%;">Unit Price (<t t-esc="currency_label"/>)<br/>سعر الوحدة (<t t-esc="currency_label_ar"/>)</th>
+                                <th style="width:15%;">Total Amount (<t t-esc="currency_label"/>)<br/>الإجمالي (<t t-esc="currency_label_ar"/>)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -397,36 +530,41 @@
                     <br/>
 
                     <!-- ================= BANK DETAILS ================= -->
-                    <table width="100%" style="border-collapse:collapse;">
-    <tr>
-        <!-- LEFT COLUMN -->
-        <td width="50%" class="label-cell" style="vertical-align:top;">
-            <strong>BANK DETAILS</strong><br/>
-            Bank: ARAB NATIONAL BANK<br/>
-            Account Name: Energy Services LTD CO<br/>
-            Account Number: 0108095378110018<br/>
-            IBAN: SA0230400108095378110018<br/><br/>
-
-            <!-- ZATCA QR CODE -->
-            <t t-if="o._l10n_sa_is_legal() and o.l10n_sa_qr_code_str">
-                <img
-                    t-att-src="'/report/barcode/?barcode_type=QR&amp;value=%s&amp;width=130&amp;height=130'
-                        % quote_plus(o.l10n_sa_qr_code_str)"
-                    style="display:block;margin-top:5px;"
-                />
-            </t>
-        </td>
-
-        <!-- RIGHT COLUMN -->
-        <td width="50%" class="label-cell" style="vertical-align:top;">
-            Address: KING FAISAL STREET NORTH MURABA<br/>
-            CITY: RIYADH<br/>
-            ZIP: 11564<br/>
-            COUNTRY: Saudi Arabia<br/>
-            Swift Code: ARNBSARI
-        </td>
-    </tr>
-</table>
+                    <div class="bank-details-section" style="page-break-inside:avoid; break-inside:avoid-page;">
+                        <table class="bank-details-table" width="100%">
+                            <tr style="border:none !important;">
+                                <td class="bank-details-bank">
+                                    <div class="bank-details-box bank-details-text">
+                                        <strong>BANK DETAILS</strong>
+                                        <span class="bank-line">Bank: ARAB NATIONAL BANK</span>
+                                        <span class="bank-line">Account Name: Energy Services LTD CO</span>
+                                        <span class="bank-line">Account Number: 0108095378110018</span>
+                                        <span class="bank-line">IBAN: SA0230400108095378110018</span>
+                                    </div>
+                                </td>
+                                <td class="bank-details-address">
+                                    <div class="bank-details-box bank-details-text">
+                                        <span class="bank-line">Address: KING FAISAL STREET NORTH MURABA</span>
+                                        <span class="bank-line">CITY: RIYADH</span>
+                                        <span class="bank-line">ZIP: 11564</span>
+                                        <span class="bank-line">COUNTRY: Saudi Arabia</span>
+                                        <span class="bank-line">Swift Code: ARNBSARI</span>
+                                    </div>
+                                </td>
+                                <td class="bank-details-qr">
+                                    <t t-if="o._l10n_sa_is_legal() and o.l10n_sa_qr_code_str">
+                                        <div class="bank-details-box bank-details-box-qr">
+                                            <img
+                                                t-att-src="'/report/barcode/?barcode_type=QR&amp;value=%s&amp;width=180&amp;height=180'
+                                                    % quote_plus(o.l10n_sa_qr_code_str)"
+                                                class="bank-details-qr-image"
+                                            />
+                                        </div>
+                                    </t>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
 
 
                 </div>
