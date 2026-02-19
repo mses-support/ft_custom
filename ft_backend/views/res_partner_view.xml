@@ -6,24 +6,62 @@
         <field name="model">res.partner</field>
         <field name="inherit_id" ref="base.view_partner_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//span[@name='address_name']/following-sibling::div[contains(@class, 'o_address_format')][1]/field[@name='street']" position="attributes">
+                <attribute name="required">type == 'contact'</attribute>
+            </xpath>
+            <xpath expr="//span[@name='address_name']/following-sibling::div[contains(@class, 'o_address_format')][1]/field[@name='street2']" position="attributes">
+                <attribute name="required">type == 'contact'</attribute>
+            </xpath>
+            <xpath expr="//span[@name='address_name']/following-sibling::div[contains(@class, 'o_address_format')][1]/field[@name='city']" position="attributes">
+                <attribute name="required">type == 'contact'</attribute>
+            </xpath>
+            <xpath expr="//span[@name='address_name']/following-sibling::div[contains(@class, 'o_address_format')][1]/field[@name='state_id']" position="attributes">
+                <attribute name="required">type == 'contact'</attribute>
+            </xpath>
+            <xpath expr="//span[@name='address_name']/following-sibling::div[contains(@class, 'o_address_format')][1]/field[@name='zip']" position="attributes">
+                <attribute name="required">type == 'contact'</attribute>
+            </xpath>
+            <xpath expr="//span[@name='address_name']/following-sibling::div[contains(@class, 'o_address_format')][1]/div[@name='partner_address_country']/field[@name='country_id']" position="attributes">
+                <attribute name="required">type == 'contact'</attribute>
+            </xpath>
+
+            <xpath expr="//group[@name='other_info']//div[@name='div_address']/field[@name='street']" position="attributes">
+                <attribute name="required">type != 'contact'</attribute>
+            </xpath>
+            <xpath expr="//group[@name='other_info']//div[@name='div_address']/field[@name='street2']" position="attributes">
+                <attribute name="required">type != 'contact'</attribute>
+            </xpath>
+            <xpath expr="//group[@name='other_info']//div[@name='div_address']/field[@name='city']" position="attributes">
+                <attribute name="required">type != 'contact'</attribute>
+            </xpath>
+            <xpath expr="//group[@name='other_info']//div[@name='div_address']/field[@name='state_id']" position="attributes">
+                <attribute name="required">type != 'contact'</attribute>
+            </xpath>
+            <xpath expr="//group[@name='other_info']//div[@name='div_address']/field[@name='zip']" position="attributes">
+                <attribute name="required">type != 'contact'</attribute>
+            </xpath>
+            <xpath expr="//group[@name='other_info']//div[@name='div_address']/field[@name='country_id']" position="attributes">
+                <attribute name="required">type != 'contact'</attribute>
+            </xpath>
+
             <xpath expr="//sheet/notebook" position="inside">
                 <page string="Arabic Details">
                     <group>
                         <group>
-                            <field name="name_arabic" placeholder="اسم الشركة بالعربية"/>
-                            <field name="company_registry_arabic" placeholder="رقم السجل التجاري بالعربية"/>
-                            <field name="vat_arabic" placeholder="رقم ضريبة القيمة المضافة بالعربية"/>
+                            <field name="name_arabic" required="1" placeholder="اسم الشركة بالعربية"/>
+                            <field name="company_registry_arabic" required="1" placeholder="رقم السجل التجاري بالعربية"/>
+                            <field name="vat_arabic" required="1" placeholder="رقم ضريبة القيمة المضافة بالعربية"/>
                         </group>
                         <group>
-                            <field name="street_arabic" placeholder="الشارع بالعربية"/>
-                            <field name="street2_arabic" placeholder="الشارع 2 بالعربية"/>
-                            <field name="city_arabic" placeholder="المدينة بالعربية"/>
-                            <field name="zip_arabic" placeholder="الرمز البريدي بالعربية"/>
-                            <field name="country_arabic" placeholder="الدولة بالعربية"/>
+                            <field name="street_arabic" required="1" placeholder="الشارع بالعربية"/>
+                            <field name="street2_arabic" required="1" placeholder="الشارع 2 بالعربية"/>
+                            <field name="city_arabic" required="1" placeholder="المدينة بالعربية"/>
+                            <field name="zip_arabic" required="1" placeholder="الرمز البريدي بالعربية"/>
+                            <field name="country_arabic" required="1" placeholder="الدولة بالعربية"/>
                         </group>
                     </group>
                     <group>
-                        <field name="address_arabic" placeholder="العنوان الكامل بالعربية"/>
+                        <field name="address_arabic" required="1" placeholder="العنوان الكامل بالعربية"/>
                     </group>
                 </page>
             </xpath>
