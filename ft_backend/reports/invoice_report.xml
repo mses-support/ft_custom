@@ -463,10 +463,10 @@
                             <table width="100%" style="border:none;">
                                 <tr>
                                     <td style="border:none; text-align:left;" class="label-cell">
-                                        Total Excluding VAT
+                                        Total Excluding VAT (<t t-esc="currency_label"/>)
                                     </td>
                                     <td style="border:none; text-align:right; direction:rtl;">
-                                        المجموع قبل الضريبة
+                                        المجموع قبل الضريبة (<t t-esc="currency_label_ar"/>)
                                     </td>
                                 </tr>
                             </table>
@@ -509,10 +509,10 @@
                             <table width="100%" style="border:none;">
                                 <tr>
                                     <td style="border:none; text-align:left;" class="label-cell">
-                                        <strong>Total Amount</strong>
+                                        <strong>Total Amount (<t t-esc="currency_label"/>)</strong>
                                     </td>
                                     <td style="border:none; text-align:right; direction:rtl;">
-                                        <strong>المجموع الإجمالي</strong>
+                                        <strong>المجموع الإجمالي (<t t-esc="currency_label_ar"/>)</strong>
                                     </td>
                                 </tr>
                             </table>
