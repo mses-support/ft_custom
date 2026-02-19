@@ -1,0 +1,114 @@
+<odoo>
+    <template id="invoice_report_template_inherit_zatca" inherit_id="ft_backend.invoice_report_template">
+        <xpath expr="//div[contains(@class, 'bank-details-section')]" position="before">
+            <t t-if="o.zatca_sar_currency_id and o.currency_id != o.zatca_sar_currency_id">
+                <table style="margin-bottom: 16px;">
+                    <colgroup>
+                        <col style="width:80%;"/>
+                        <col style="width:20%;"/>
+                    </colgroup>
+                    <tr>
+                        <td>
+                            <table width="100%" style="border:none;">
+                                <tr>
+                                    <td style="border:none; text-align:left;" class="label-cell">
+                                        Total VAT in SAR
+                                    </td>
+                                    <td style="border:none; text-align:right; direction:rtl;">
+                                        إجمالي الضريبة بالريال السعودي
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td class="total-amount">
+                            <span t-esc="o.zatca_tax_sar"
+                                  t-options="{'widget': 'monetary', 'display_currency': o.zatca_sar_currency_id}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width="100%" style="border:none;">
+                                <tr>
+                                    <td style="border:none; text-align:left;" class="label-cell">
+                                        Total Amount in SAR
+                                    </td>
+                                    <td style="border:none; text-align:right; direction:rtl;">
+                                        المبلغ الإجمالي بالريال السعودي
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td class="total-amount">
+                            <strong>
+                                <span t-esc="o.zatca_total_sar"
+                                      t-options="{'widget': 'monetary', 'display_currency': o.zatca_sar_currency_id}"/>
+                            </strong>
+                        </td>
+                    </tr>
+                </table>
+            </t>
+        </xpath>
+    </template>
+
+    <template id="invoice_report_template_no_header_footer_inherit_zatca"
+              inherit_id="ft_backend.invoice_report_template_no_header_footer">
+        <xpath expr="//div[contains(@class, 'bank-details-section')]" position="before">
+            <t t-if="o.zatca_sar_currency_id and o.currency_id != o.zatca_sar_currency_id">
+                <table style="margin-bottom: 16px;">
+                    <colgroup>
+                        <col style="width:80%;"/>
+                        <col style="width:20%;"/>
+                    </colgroup>
+                    <tr>
+                        <td>
+                            <table width="100%" style="border:none;">
+                                <tr>
+                                    <td style="border:none; text-align:left;" class="label-cell">
+                                        Total VAT in SAR
+                                    </td>
+                                    <td style="border:none; text-align:right; direction:rtl;">
+                                        إجمالي الضريبة بالريال السعودي
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td class="total-amount">
+                            <span t-esc="o.zatca_tax_sar"
+                                  t-options="{'widget': 'monetary', 'display_currency': o.zatca_sar_currency_id}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width="100%" style="border:none;">
+                                <tr>
+                                    <td style="border:none; text-align:left;" class="label-cell">
+                                        Total Amount in SAR
+                                    </td>
+                                    <td style="border:none; text-align:right; direction:rtl;">
+                                        المبلغ الإجمالي بالريال السعودي
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td class="total-amount">
+                            <strong>
+                                <span t-esc="o.zatca_total_sar"
+                                      t-options="{'widget': 'monetary', 'display_currency': o.zatca_sar_currency_id}"/>
+                            </strong>
+                        </td>
+                    </tr>
+                </table>
+            </t>
+        </xpath>
+    </template>
+
+    <template id="zatca_invoice_xml">
+        <Invoice>
+            <InvoiceNumber><t t-esc="o.name"/></InvoiceNumber>
+            <InvoiceCurrencyCode><t t-esc="o.currency_id.name"/></InvoiceCurrencyCode>
+            <TaxCurrencyCode>SAR</TaxCurrencyCode>
+            <TaxAmount currencyID="SAR"><t t-esc="'%.2f' % o.zatca_tax_sar"/></TaxAmount>
+            <PayableAmount currencyID="SAR"><t t-esc="'%.2f' % o.zatca_total_sar"/></PayableAmount>
+        </Invoice>
+    </template>
+</odoo>
