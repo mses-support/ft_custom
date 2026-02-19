@@ -5,26 +5,44 @@
         <field name="model">res.company</field>
         <field name="inherit_id" ref="base.view_company_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//page[@name='general_info']//div[contains(@class, 'o_address_format')]/field[@name='street']" position="attributes">
+                <attribute name="required">1</attribute>
+            </xpath>
+            <xpath expr="//page[@name='general_info']//div[contains(@class, 'o_address_format')]/field[@name='street2']" position="attributes">
+                <attribute name="required">1</attribute>
+            </xpath>
+            <xpath expr="//page[@name='general_info']//div[contains(@class, 'o_address_format')]/field[@name='city']" position="attributes">
+                <attribute name="required">1</attribute>
+            </xpath>
+            <xpath expr="//page[@name='general_info']//div[contains(@class, 'o_address_format')]/field[@name='state_id']" position="attributes">
+                <attribute name="required">1</attribute>
+            </xpath>
+            <xpath expr="//page[@name='general_info']//div[contains(@class, 'o_address_format')]/field[@name='zip']" position="attributes">
+                <attribute name="required">1</attribute>
+            </xpath>
+            <xpath expr="//page[@name='general_info']//div[contains(@class, 'o_address_format')]/field[@name='country_id']" position="attributes">
+                <attribute name="required">1</attribute>
+            </xpath>
 
             <!-- Add new block in Company form -->
             <xpath expr="//sheet/notebook" position="inside">
                 <page string="Arabic Details">
                     <group>
                         <group>
-                            <field name="name_arabic" placeholder="اسم الشركة بالعربية"/>
-                            <field name="company_registry_arabic" placeholder="رقم السجل التجاري بالعربية"/>
-                            <field name="vat_arabic" placeholder="رقم ضريبة القيمة المضافة بالعربية"/>
+                            <field name="name_arabic" required="1" placeholder="اسم الشركة بالعربية"/>
+                            <field name="company_registry_arabic" required="1" placeholder="رقم السجل التجاري بالعربية"/>
+                            <field name="vat_arabic" required="1" placeholder="رقم ضريبة القيمة المضافة بالعربية"/>
                         </group>
                         <group>
-                            <field name="street_arabic" placeholder="الشارع بالعربية"/>
-                            <field name="street2_arabic" placeholder="الشارع 2 بالعربية"/>
-                            <field name="city_arabic" placeholder="المدينة بالعربية"/>
-                            <field name="zip_arabic" placeholder="الرمز البريدي بالعربية"/>
-                            <field name="country_arabic" placeholder="الدولة بالعربية"/>
+                            <field name="street_arabic" required="1" placeholder="الشارع بالعربية"/>
+                            <field name="street2_arabic" required="1" placeholder="الشارع 2 بالعربية"/>
+                            <field name="city_arabic" required="1" placeholder="المدينة بالعربية"/>
+                            <field name="zip_arabic" required="1" placeholder="الرمز البريدي بالعربية"/>
+                            <field name="country_arabic" required="1" placeholder="الدولة بالعربية"/>
                         </group>
                     </group>
                     <group>
-                        <field name="address_arabic" placeholder="العنوان الكامل بالعربية"/>
+                        <field name="address_arabic" required="1" placeholder="العنوان الكامل بالعربية"/>
                     </group>
                 </page>
 
