@@ -5,7 +5,7 @@
         <t t-name="ft_backend.purchase_order_rfq_report_template">
             <t t-call="web.html_container">
                 <t t-foreach="docs" t-as="o">
-                    <t t-call="web.basic_layout">
+                    <t t-call="web.external_layout">
                         <t t-set="line_categories"
                            t-value="[line.product_id.categ_id.display_name for line in o.order_line if not line.display_type and line.product_id and line.product_id.categ_id]"/>
                         <t t-set="category_value"

@@ -3,7 +3,7 @@
     <template id="report_material_requisition">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
-                <t t-call="web.basic_layout">
+                <t t-call="web.external_layout">
                     <style>
                         .mr-report {
                             font-size: 13px;
