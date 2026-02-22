@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <template id="purchase_order_rfq_report_template">
+        <t t-name="ft_backend.purchase_order_rfq_report_template">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <t t-call="web.basic_layout">
+                        <t t-set="line_categories"
+                           t-value="[line.product_id.categ_id.display_name for line in o.order_line if not line.display_type and line.product_id and line.product_id.categ_id]"/>
+                        <t t-set="category_value"
+                           t-value="', '.join(sorted(set(line_categories))) if line_categories else ''"/>
+                        <t t-set="issuer_value"
+                           t-value="(o.user_id and o.user_id.name) or (o.create_uid and o.create_uid.name) or ''"/>
+
+                        <style>
+                            .rfq-po-report {
+                                font-size: 13px;
+                                color: #000;
+                            }
+                            .rfq-po-report table {
+                                width: 100%;
+                                border-collapse: collapse;
+                                table-layout: fixed;
+                            }
+                            .rfq-po-report th,
+                            .rfq-po-report td {
+                                border: 1px solid #2b2b2b;
+                                padding: 7px 8px;
+                                vertical-align: middle;
+                            }
+                            .rfq-po-report .rfq-no-border td,
+                            .rfq-po-report .rfq-no-border th {
+                                border: none;
+                                padding: 0;
+                            }
+                            .rfq-po-report .rfq-header {
+                                margin-bottom: 10px;
+                                border: none !important;
+                                overflow: hidden;
+                            }
+                            .rfq-po-report .rfq-company-en {
+                                float: left;
+                                width: 50%;
+                                text-align: left;
+                                font-size: 22px;
+                                font-weight: 700;
+                                line-height: 1.1;
+                                white-space: nowrap;
+                            }
+                            .rfq-po-report .rfq-company-en .rfq-red-underline {
+                                color: #d71920;
+                                text-decoration: underline;
+                            }
+                            .rfq-po-report .rfq-company-ar {
+                                float: right;
+                                width: 50%;
+                                text-align: right;
+                                direction: rtl;
+                                font-size: 22px;
+                                font-weight: 700;
+                                line-height: 1.1;
+                                white-space: nowrap;
+                            }
+                            .rfq-po-report .rfq-title {
+                                text-align: center;
+                                margin: 6px 0 14px 0;
+                                font-size: 28px;
+                                font-weight: 700;
+                            }
+                            .rfq-po-report .rfq-meta-table {
+                                margin-bottom: 16px;
+                            }
+                            .rfq-po-report .rfq-head-red {
+                                background-color: #ef1111;
+                                font-weight: 700;
+                            }
+                            .rfq-po-report .rfq-head-gray {
+                                background-color: #c9c9c9;
+                                font-weight: 700;
+                            }
+                            .rfq-po-report .rfq-left {
+                                text-align: left;
+                            }
+                            .rfq-po-report .rfq-center {
+                                text-align: center;
+                            }
+                            .rfq-po-report .rfq-line-table td {
+                                overflow-wrap: anywhere;
+                                word-break: break-word;
+                            }
+                        </style>
+
+                        <div class="page rfq-po-report">
+                            <div class="rfq-header">
+                                <div class="rfq-company-en">
+                                    <span class="rfq-red-underline">ENERGY SERVICES</span> LTD. CO.
+                                </div>
+                                <div class="rfq-company-ar">شركة الخدمات الطاقه المحدوده</div>
+                            </div>
+
+                            <div class="rfq-title">Request for Quotation</div>
+
+                            <table class="rfq-meta-table">
+                                <thead>
+                                    <tr class="rfq-head-red">
+                                        <th style="width:25%;">RFQ No.</th>
+                                        <th style="width:25%;">Issue Date</th>
+                                        <th style="width:25%;">Category</th>
+                                        <th style="width:25%;">Issuer</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="rfq-left"><t t-esc="o.name or ''"/></td>
+                                        <td class="rfq-left">
+                                            <span t-field="o.date_order" t-options='{"widget": "date"}'/>
+                                        </td>
+                                        <td class="rfq-left"><t t-esc="category_value"/></td>
+                                        <td class="rfq-left"><t t-esc="issuer_value"/></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <table class="rfq-line-table">
+                                <thead>
+                                    <tr class="rfq-head-gray">
+                                        <th style="width:8%;">#</th>
+                                        <th style="width:31%;">Description</th>
+                                        <th style="width:30%;">Additional Details</th>
+                                        <th style="width:16%;">QTY</th>
+                                        <th style="width:15%;">UoM</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-set="sr" t-value="1"/>
+                                    <t t-set="has_lines" t-value="False"/>
+                                    <t t-foreach="o.order_line" t-as="line">
+                                        <t t-if="not line.display_type">
+                                            <t t-set="has_lines" t-value="True"/>
+                                            <tr>
+                                                <td class="rfq-center"><t t-esc="sr"/></td>
+                                                <td class="rfq-left"><t t-esc="line.product_id.display_name if line.product_id else (line.name or '')"/></td>
+                                                <td class="rfq-left"><t t-esc="line.name or (line.product_id and line.product_id.description_purchase) or ''"/></td>
+                                                <td class="rfq-center"><span t-field="line.product_qty"/></td>
+                                                <td class="rfq-center"><t t-esc="line.product_uom_id.name or ''"/></td>
+                                            </tr>
+                                            <t t-set="sr" t-value="sr + 1"/>
+                                        </t>
+                                    </t>
+                                    <t t-if="not has_lines">
+                                        <tr>
+                                            <td>&#160;</td>
+                                            <td>&#160;</td>
+                                            <td>&#160;</td>
+                                            <td>&#160;</td>
+                                            <td>&#160;</td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+                    </t>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

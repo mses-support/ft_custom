@@ -14,7 +14,8 @@
         'views/hr_employee_view.xml',
         "reports/invoice_report.xml",
         "reports/invoice_report_no_header_footer.xml",
-        "reports/purchase_order_report.xml"
+        "reports/purchase_order_report.xml",
+        "reports/purchase_order_rfq_report.xml"
     ],
     "installable": True
 }

@@ -44,4 +44,17 @@
         <field name="print_report_name">'PO - %s' % (object.name)</field>
     </record>
 
+    <record id="action_purchase_order_rfq_report" model="ir.actions.report">
+        <field name="name">RFQ PO (Energy Services)</field>
+        <field name="model">purchase.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">ft_backend.purchase_order_rfq_report_template</field>
+        <field name="report_file">ft_backend.purchase_order_rfq_report_template</field>
+
+        <field name="binding_model_id" ref="purchase.model_purchase_order"/>
+        <field name="binding_type">report</field>
+
+        <field name="print_report_name">'RFQ PO - %s' % (object.name)</field>
+    </record>
+
 </odoo>

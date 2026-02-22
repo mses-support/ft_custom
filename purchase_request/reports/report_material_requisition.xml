@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <template id="report_material_requisition">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.basic_layout">
+                    <style>
+                        .mr-report {
+                            font-size: 13px;
+                            color: #000;
+                        }
+                        .mr-report table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            table-layout: fixed;
+                        }
+                        .mr-report th,
+                        .mr-report td {
+                            border: 1px solid #1f1f1f;
+                            padding: 7px 8px;
+                            vertical-align: middle;
+                        }
+                        .mr-report .mr-header {
+                            margin-bottom: 10px;
+                            overflow: hidden;
+                        }
+                        .mr-report .mr-company-en {
+                            float: left;
+                            width: 50%;
+                            text-align: left;
+                            font-size: 22px;
+                            font-weight: 700;
+                            line-height: 1.1;
+                            white-space: nowrap;
+                        }
+                        .mr-report .mr-company-ar {
+                            float: right;
+                            width: 50%;
+                            text-align: right;
+                            direction: rtl;
+                            font-size: 22px;
+                            font-weight: 700;
+                            line-height: 1.1;
+                            white-space: nowrap;
+                        }
+                        .mr-report .mr-red-underline {
+                            color: #d71920;
+                            text-decoration: underline;
+                        }
+                        .mr-report .mr-title {
+                            text-align: center;
+                            font-size: 28px;
+                            font-weight: 700;
+                            margin: 8px 0 12px 0;
+                        }
+                        .mr-report .mr-head-red {
+                            background-color: #ef1111;
+                            font-weight: 700;
+                        }
+                        .mr-report .mr-head-gray {
+                            background-color: #c9c9c9;
+                            font-weight: 700;
+                        }
+                        .mr-report .mr-note {
+                            color: #001bff;
+                            font-weight: 700;
+                            text-align: center;
+                            font-size: 15px;
+                            line-height: 1.35;
+                        }
+                        .mr-report .mr-left {
+                            text-align: left;
+                        }
+                        .mr-report .mr-center {
+                            text-align: center;
+                        }
+                    </style>
+
+                    <div class="page mr-report">
+                        <div class="mr-header">
+                            <div class="mr-company-en">
+                                <span class="mr-red-underline">ENERGY SERVICES</span> LTD. CO.
+                            </div>
+                            <div class="mr-company-ar">شركة الخدمات الطاقه المحدوده</div>
+                        </div>
+
+                        <div class="mr-title">MATERIAL REQUISITION</div>
+
+                        <table>
+                            <thead>
+                                <tr class="mr-head-red">
+                                    <th style="width:16.66%;">Div.</th>
+                                    <th style="width:16.66%;">Dept. Code</th>
+                                    <th style="width:16.66%;">Project Code</th>
+                                    <th style="width:16.66%;">MR No.</th>
+                                    <th style="width:16.66%;">Rev.</th>
+                                    <th style="width:16.66%;">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="mr-left"><t t-esc="o.department.display_name if o.department else ''"/></td>
+                                    <td class="mr-left"><t t-esc="o.department.display_name if o.department else ''"/></td>
+                                    <td class="mr-left"><t t-esc="o.project.display_name if o.project else ''"/></td>
+                                    <td class="mr-left"><t t-esc="o.name or ''"/></td>
+                                    <td class="mr-left">1.0</td>
+                                    <td class="mr-left"><span t-field="o.date_start" t-options='{"widget": "date"}'/></td>
+                                </tr>
+                                <tr>
+                                    <td class="mr-note" colspan="6">NOTE : NO CELLS IN THIS DOCUMENT SHALL BE LEFT BLANK; WHICHEVER NOT APPLICABLE PLEASE PUT "N/A"</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <table style="margin-top: 12px;">
+                            <thead>
+                                <tr class="mr-head-gray">
+                                    <th style="width:8%;">#</th>
+                                    <th style="width:42%;">Description</th>
+                                    <th style="width:20%;">QTY</th>
+                                    <th style="width:15%;">UoM</th>
+                                    <th style="width:15%;">Required Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="sr" t-value="1"/>
+                                <t t-foreach="o.line_ids" t-as="line">
+                                    <tr>
+                                        <td class="mr-center"><t t-esc="sr"/></td>
+                                        <td class="mr-left"><t t-esc="line.name or (line.product_id and line.product_id.display_name) or ''"/></td>
+                                        <td class="mr-center"><t t-esc="line.product_qty"/></td>
+                                        <td class="mr-center"><t t-esc="line.product_uom_id.name or ''"/></td>
+                                        <td class="mr-center"><span t-field="line.date_required" t-options='{"widget": "date"}'/></td>
+                                    </tr>
+                                    <t t-set="sr" t-value="sr + 1"/>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

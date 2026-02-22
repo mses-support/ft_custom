@@ -109,6 +109,14 @@ class PurchaseRequest(models.Model):
         default=lambda self: self.env.user.has_group("base.group_no_one"),
     )
     origin = fields.Char(string="Source Document")
+    project = fields.Many2one(
+        comodel_name="project.project",
+        string="Project",
+    )
+    department = fields.Many2one(
+        comodel_name="hr.department",
+        string="Department",
+    )
     date_start = fields.Date(
         string="Creation date",
         help="Date when the user initiated the request.",
