@@ -74,6 +74,12 @@ class StockRequestOrder(models.Model):
         tracking=True,
         default=lambda s: s._get_default_requested_by(),
     )
+    store_keeper_user_id = fields.Many2one(
+        "res.users",
+        string="Store Keeper",
+        tracking=True,
+        default=lambda s: s._get_default_requested_by(),
+    )
     warehouse_id = fields.Many2one(
         comodel_name="stock.warehouse",
         string="Warehouse",
@@ -259,6 +265,10 @@ class StockRequestOrder(models.Model):
     def onchange_requested_by(self):
         self.change_childs()
 
+    @api.onchange("store_keeper_user_id")
+    def onchange_store_keeper_user_id(self):
+        self.change_childs()
+
     @api.onchange("expected_date")
     def onchange_expected_date(self):
         self.change_childs()
@@ -315,6 +325,7 @@ class StockRequestOrder(models.Model):
                 line.picking_policy = self.picking_policy
                 line.expected_date = self.expected_date
                 line.requested_by = self.requested_by
+                line.store_keeper_user_id = self.store_keeper_user_id
                 line.reference_id = self.reference_id
 
     def action_submit(self):

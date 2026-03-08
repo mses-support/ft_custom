@@ -14,6 +14,7 @@
                 <field name="allow_virtual_location" invisible="1" />
                 <field name="name" />
                 <field name="requested_by" />
+                <field name="store_keeper_user_id" />
                 <field name="warehouse_id" />
                 <field name="location_id" />
                 <field
@@ -171,6 +172,7 @@
                                 groups="stock_request.group_stock_request_order"
                             />
                             <field name="requested_by" />
+                            <field name="store_keeper_user_id" />
                             <field name="product_id" />
                             <field name="expected_date" />
                             <field name="picking_policy" />

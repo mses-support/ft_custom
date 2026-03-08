@@ -114,6 +114,7 @@
                     <group>
                         <group>
                             <field name="requested_by" />
+                            <field name="store_keeper_user_id" />
                             <field name="expected_date" />
                             <field name="picking_policy" />
                             <field name="state" readonly="1" />
@@ -145,6 +146,7 @@
                             'default_warehouse_id': warehouse_id,
                             'default_location_id': location_id,
                             'default_reference_id': reference_id,
+                            'default_store_keeper_user_id': store_keeper_user_id,
                             'default_company_id': company_id,
                             'default_state': state,
                             }"

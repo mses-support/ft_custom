@@ -3,6 +3,7 @@
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
+from odoo.tools import html_escape
 from odoo.tools import float_compare
 
 
@@ -36,6 +37,12 @@ class StockRequest(models.Model):
     requested_by = fields.Many2one(
         "res.users",
         required=True,
+        tracking=True,
+        default=lambda s: s._get_default_requested_by(),
+    )
+    store_keeper_user_id = fields.Many2one(
+        "res.users",
+        string="Store Keeper",
         tracking=True,
         default=lambda s: s._get_default_requested_by(),
     )
@@ -190,6 +197,15 @@ class StockRequest(models.Model):
         for rec in self:
             if rec.order_id and rec.order_id.requested_by != rec.requested_by:
                 raise ValidationError(_("Requested by must be equal to the order"))
+
+    @api.constrains("order_id", "store_keeper_user_id")
+    def check_order_store_keeper_user_id(self):
+        for rec in self:
+            if (
+                rec.order_id
+                and rec.order_id.store_keeper_user_id != rec.store_keeper_user_id
+            ):
+                raise ValidationError(_("Store Keeper must be equal to the order"))
 
     @api.constrains("order_id", "warehouse_id")
     def check_order_warehouse_id(self):
@@ -434,7 +450,26 @@ class StockRequest(models.Model):
             else:
                 upd_vals["expected_date"] = self._get_expected_date()
             vals_list_upd.append(upd_vals)
-        return super().create(vals_list_upd)
+        requests = super().create(vals_list_upd)
+        requests._notify_store_keeper_on_create()
+        return requests
+
+    def _notify_store_keeper_on_create(self):
+        for request in self:
+            partner = request.store_keeper_user_id.partner_id
+            if not partner:
+                continue
+            request.with_context(mail_notify_author=True).message_notify(
+                partner_ids=[partner.id],
+                subject=_("Stock Request Created: %(name)s") % {"name": request.name},
+                body=_(
+                    "A new Stock Request <b>%(request)s</b> has been created by %(user)s."
+                )
+                % {
+                    "request": html_escape(request.name),
+                    "user": html_escape(request.requested_by.display_name),
+                },
+            )
 
     def unlink(self):
         if self.filtered(lambda r: r.state != "draft"):
