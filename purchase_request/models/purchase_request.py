@@ -126,8 +126,8 @@ class PurchaseRequest(models.Model):
         default=_get_default_requested_by,
     )
     stock_request_id = fields.Many2one(
-        comodel_name="stock.request",
-        string="Stock Request",
+        comodel_name="stock.request.order",
+        string="Stock Request Order",
         tracking=True,
     )
     date_start = fields.Date(
