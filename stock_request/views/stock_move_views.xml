@@ -5,6 +5,14 @@
         <field name="model">stock.move</field>
         <field name="inherit_id" ref="stock.view_stock_move_operations" />
         <field name="arch" type="xml">
+            <field name="product_id" position="after">
+                <field name="cost" readonly="state == 'done'" />
+                <field
+                    name="analytic_account_id"
+                    readonly="state == 'done'"
+                    options="{'no_create': True}"
+                />
+            </field>
             <field name="move_line_ids" position="after">
                 <newline />
                 <field name="allocation_ids" />
@@ -16,12 +24,35 @@
         <field name="model">stock.move</field>
         <field name="inherit_id" ref="stock.view_move_form" />
         <field name="arch" type="xml">
+            <field name="product_id" position="after">
+                <field name="cost" readonly="state == 'done'" />
+                <field
+                    name="analytic_account_id"
+                    readonly="state == 'done'"
+                    options="{'no_create': True}"
+                />
+            </field>
             <group name="linked_group" position="after">
                 <newline />
                 <group name="allocations" string="Stock Request Allocations">
                     <field name="allocation_ids" />
                 </group>
             </group>
+        </field>
+    </record>
+    <record id="view_picking_move_tree_stock_request" model="ir.ui.view">
+        <field name="name">stock.picking.move.list.stock.request</field>
+        <field name="model">stock.move</field>
+        <field name="inherit_id" ref="stock.view_picking_move_tree" />
+        <field name="arch" type="xml">
+            <field name="product_id" position="after">
+                <field name="cost" optional="show" />
+                <field
+                    name="analytic_account_id"
+                    optional="show"
+                    options="{'no_create': True}"
+                />
+            </field>
         </field>
     </record>
 </odoo>

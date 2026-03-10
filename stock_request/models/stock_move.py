@@ -19,11 +19,49 @@ class StockMove(models.Model):
         string="Stock Requests",
         compute="_compute_stock_request_ids",
     )
+    cost = fields.Float(string="Cost", digits="Product Price", copy=False)
+    analytic_account_id = fields.Many2one(
+        comodel_name="account.analytic.account",
+        string="Analytic Account",
+        check_company=True,
+        copy=False,
+    )
 
     @api.depends("allocation_ids")
     def _compute_stock_request_ids(self):
         for rec in self:
             rec.stock_request_ids = rec.allocation_ids.mapped("stock_request_id")
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get("product_id") and "cost" not in vals:
+                company_id = vals.get("company_id") or self.env.company.id
+                product = self.env["product.product"].with_company(company_id).browse(
+                    vals["product_id"]
+                )
+                vals["cost"] = product.standard_price
+        return super().create(vals_list)
+
+    def write(self, vals):
+        res = super().write(vals)
+        if "product_id" in vals and "cost" not in vals:
+            for move in self:
+                move.cost = (
+                    move.product_id.with_company(move.company_id).standard_price
+                    if move.product_id
+                    else 0.0
+                )
+        return res
+
+    @api.onchange("product_id")
+    def _onchange_product_id_set_cost(self):
+        for move in self:
+            move.cost = (
+                move.product_id.with_company(move.company_id).standard_price
+                if move.product_id
+                else 0.0
+            )
 
     def _merge_moves_fields(self):
         res = super(StockMove, self)._merge_moves_fields()
