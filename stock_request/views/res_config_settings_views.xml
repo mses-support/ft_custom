@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.stock_request</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="stock.res_config_settings_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='stock']" position="inside">
+                <block
+                    title="Stock Requests"
+                    name="stock_request_setting_container"
+                    groups="stock_request.group_stock_request_manager"
+                >
+                    <setting
+                        id="stock_request_order_setting"
+                        help="Activate Stock Request Orders."
+                    >
+                        <field name="group_stock_request_order" />
+                    </setting>
+                    <setting
+                        id="stock_request_allow_virtual_loc_setting"
+                        help="Allow selecting all location usages in Stock Requests and Orders."
+                    >
+                        <field name="stock_request_allow_virtual_loc" />
+                    </setting>
+                    <setting
+                        id="stock_request_check_available_first_setting"
+                        help="Use available stock first before launching procurement rules."
+                    >
+                        <field name="stock_request_check_available_first" />
+                    </setting>
+                    <setting
+                        id="stock_request_submit_setting"
+                        help="Enable submitted state in Stock Requests and Stock Request Orders."
+                    >
+                        <field name="module_stock_request_submit" />
+                    </setting>
+                    <setting
+                        id="stock_request_purchase_setting"
+                        help="Use Purchases with Stock Requests."
+                    >
+                        <field name="module_stock_request_purchase" />
+                    </setting>
+                    <setting
+                        id="stock_request_mrp_setting"
+                        help="Use Manufacturing Orders with Stock Requests."
+                    >
+                        <field name="module_stock_request_mrp" />
+                    </setting>
+                    <setting
+                        id="stock_request_kanban_setting"
+                        help="Use Kanban cards for consumable products."
+                    >
+                        <field name="module_stock_request_kanban" />
+                    </setting>
+                    <setting
+                        id="stock_request_analytic_setting"
+                        help="Enable analytic accounting in Stock Requests."
+                    >
+                        <field name="module_stock_request_analytic" />
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_stock_request_config" model="ir.actions.act_window">
+        <field name="name">Settings</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="context">{'module': 'stock_request'}</field>
+    </record>
+</odoo>

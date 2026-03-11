@@ -153,6 +153,18 @@
                                 class="oe_inline"
                                 readonly="is_editable == False"
                             />
+                            <field name="department" readonly="is_editable == False" />
+                            <field
+                                name="department_user_id"
+                                widget="many2one_avatar_user"
+                                readonly="is_editable == False"
+                                required="1"
+                            />
+                            <field
+                                name="stock_request_id"
+                                readonly="is_editable == False"
+                            />
+                            <field name="project" readonly="is_editable == False" />
                             <field name="description" readonly="is_editable == False" />
                             
                         </group>
@@ -266,6 +278,14 @@
                 />
                 <field name="activity_ids" widget="list_activity" optional="show" />
                 <field name="origin" />
+                <field name="department" optional="show" />
+                <field
+                    name="department_user_id"
+                    widget="many2one_avatar_user"
+                    optional="show"
+                />
+                <field name="stock_request_id" optional="show" />
+                <field name="project" optional="show" />
                 <field name="currency_id" column_invisible="1" />
                 <field name="estimated_cost" optional="hide" />
                 <field

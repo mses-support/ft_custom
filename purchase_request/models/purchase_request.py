@@ -3,6 +3,7 @@
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
+from odoo.tools import html_escape
 
 _STATES = [
     ("draft", "Draft"),
@@ -109,6 +110,26 @@ class PurchaseRequest(models.Model):
         default=lambda self: self.env.user.has_group("base.group_no_one"),
     )
     origin = fields.Char(string="Source Document")
+    project = fields.Many2one(
+        comodel_name="project.project",
+        string="Project",
+    )
+    department = fields.Many2one(
+        comodel_name="hr.department",
+        string="Department",
+    )
+    department_user_id = fields.Many2one(
+        comodel_name="res.users",
+        string="Department User",
+        required=True,
+        tracking=True,
+        default=_get_default_requested_by,
+    )
+    stock_request_id = fields.Many2one(
+        comodel_name="stock.request.order",
+        string="Stock Request Order",
+        tracking=True,
+    )
     date_start = fields.Date(
         string="Creation date",
         help="Date when the user initiated the request.",
@@ -275,6 +296,24 @@ class PurchaseRequest(models.Model):
         user_id = request.assigned_to or self.env.user
         return user_id.partner_id.id
 
+    def _notify_department_user_on_create(self):
+        for request in self:
+            partner = request.department_user_id.partner_id
+            if not partner:
+                continue
+            request.with_context(mail_notify_author=True).message_notify(
+                partner_ids=[partner.id],
+                subject=_("Purchase Requisition Created: %(name)s")
+                % {"name": request.name},
+                body=_(
+                    "A new Purchase Requisition <b>%(request)s</b> has been created by %(user)s."
+                )
+                % {
+                    "request": html_escape(request.name),
+                    "user": html_escape(request.requested_by.display_name),
+                },
+            )
+
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
@@ -285,6 +324,8 @@ class PurchaseRequest(models.Model):
             if vals.get("assigned_to"):
                 partner_id = self._get_partner_id(request)
                 request.message_subscribe(partner_ids=[partner_id])
+            if request.department_user_id:
+                request._notify_department_user_on_create()
         return requests
 
     def write(self, vals):
