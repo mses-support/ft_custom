@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="journal_voucher_report">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-if="o.state == 'posted' ">
+                    <div class="article o_report_layout_standard" t-att-data-oe-model="doc and doc._name"
+                         t-att-data-oe-id="doc and doc.id">
+
+                        <!--                 <t t-call="web.basic_layout">-->
+                        <t t-call="journal_voucher_report_print.journal_customized_header"/>
+                        <t t-call="journal_voucher_report_print.journal_customized_footer"/>
+                        <div class="page text-dark">
+                            <h4 style="text-align:center; color:#191970;font-family:Octarine;">
+                                <b>JOURNAL VOUCHER</b>
+                            </h4>
+                            <div class="row" style="margin-top:50px;">
+                                <div class="col-6">
+                                    <div class="row" style="font-family:Octarine; font-size:15px;">
+                                        <div class="col-4">
+                                            <strong>Reference:</strong>
+                                        </div>
+                                        <div class="col-8">
+                                            <t t-if="o.name">
+                                                <span t-field="o.name"/>
+                                            </t>
+                                        </div>
+                                    </div>
+                                    <div class="row" style="font-family:Octarine; font-size:15px;">
+                                        <div class="col-4">
+                                            <strong>Journal:</strong>
+                                        </div>
+                                        <div class="col-8">
+                                            <t t-if="o.journal_id">
+                                                <span t-field="o.journal_id"/>
+                                            </t>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-2"/>
+                                <div class="col-4">
+                                    <div class="row" style="font-family:Octarine; font-size:15px;">
+                                        <div class="col-4">
+                                            <strong>Status:</strong>
+                                        </div>
+                                        <div class="col-8" style="width:100%; font-size:15px; ">
+                                            <t t-if="o.state">
+                                                <span t-field="o.state"/>
+                                            </t>
+                                        </div>
+                                    </div>
+                                    <div class="row" style="font-family:Octarine;  font-size:15px;">
+                                        <div class="col-4">
+                                            <strong>Date:</strong>
+                                        </div>
+                                        <div class="col-8">
+                                            <t t-if="o.date">
+                                                <span t-field="o.date"/>
+                                            </t>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <t t-set="a" t-value="0"/>
+                        <table class="table table-bordered"
+                               style="font-family:Octarine; font-size:15px;margin-top:50px;">
+                            <tr style="background-color:#191970;">
+<!--                                <th class="text-capitalize"-->
+<!--                                    style="color:white;font-weight: normal;font-family:Octarine; font-size:15px;">-->
+<!--                                    Name-->
+<!--                                </th>-->
+                                <th class="text-capitalize"
+                                    style="color:white;font-weight: normal;font-family:Octarine; font-size:15px;">
+                                    Account
+                                </th>
+                                <th class="text-capitalize"
+                                    style="color:white;font-weight: normal;font-family:Octarine; font-size:15px;">
+                                    Partner
+                                </th>
+                                <th class="text-center text-capitalize"
+                                    style="color:white;font-weight: normal;font-family:Octarine; font-size:15px;">
+                                    Description
+                                </th>
+                                <th class="text-center text-capitalize"
+                                    style="color:white;font-weight: normal;font-family:Octarine; font-size:15px;">Debit
+                                </th>
+                                <th class="text-center text-capitalize"
+                                    style="color:white;font-weight: normal;font-family:Octarine; font-size:15px;">Credit
+                                </th>
+                            </tr>
+
+                            <tr t-foreach="o.line_ids" t-as="line">
+<!--                                <th class="text-capitalize"-->
+<!--                                    style="color:black;font-weight: normal;font-family:Octarine; font-size:15px;">-->
+<!--                                    <span t-field="o.name"/>-->
+<!--                                </th>-->
+                                <th class="text-capitalize"
+                                    style="color:black;font-weight: normal;font-family:Octarine; font-size:15px;">
+                                    <span t-field="line.account_id"/>
+                                </th>
+                                <th class="text-capitalize"
+                                    style="color:black;font-weight: normal;font-family:Octarine; font-size:15px;">
+                                    <span t-field="line.partner_id"/>
+                                </th>
+                                <th class="text-capitalize"
+                                    style="color:black;font-weight: normal;font-family:Octarine; font-size:15px;">
+                                    <span t-field="line.name"/>
+                                </th>
+                                <th class="text-right text-capitalize"
+                                    style="color:black;font-weight: normal;font-family:Octarine; font-size:15px;">
+                                    <span t-field="line.debit"/>
+                                </th>
+                                <th class="text-right text-capitalize"
+                                    style="color:black;font-weight: normal;font-family:Octarine; font-size:15px;">
+                                    <span t-field="line.credit"/>
+                                </th>
+                            </tr>
+                            <t t-set="i" t-value="a+3"/>
+
+                            <tr class="table-active">
+                                <th class="text-left text-capitalize"
+                                    style="color:black;font-weight: normal;font-family:Octarine; font-size:15px;">Total
+                                </th>
+                                <th></th>
+<!--                                <th></th>-->
+                                <th></th>
+
+                                <t t-if="a==1">
+                                    <th></th>
+                                </t>
+                                <t t-if="a==2">
+                                    <th></th>
+                                    <th></th>
+                                </t>
+                                <th class="text-right text-capitalize"
+                                    style="color:black;font-weight: normal;font-family:Octarine; font-size:15px;">
+                                    <span t-esc="sum(line.credit for line in o.line_ids)"
+                                          t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+
+                                </th>
+                                <th class="text-right text-capitalize"
+                                    style="color:black;font-weight: normal;font-family:Octarine; font-size:15px;">
+                                    <span t-esc="sum(line.debit for line in o.line_ids)"
+                                          t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                </th>
+                            </tr>
+
+                        </table>
+                        <!--                        <p style="page-break-after:always;"></p>-->
+                        <h7 style="margin-top:50px;font-family:Octarine; font-size:15px;color:black;">
+                            <b>Amount in Words:</b>
+                            <span t-esc="o.currency_id.amount_to_text(sum(line.debit for line in o.line_ids))"/>
+                        </h7>
+
+                        <p style="font-family:Octarine; font-size:15px;color:black;">
+                            <span t-field="o.narration"/>
+                        </p>
+                     </div>
+                    <!--            </t>-->
+                </t>
+                <t t-else="o.state != 'posted'">
+                    <span style="text-align: center; color:red; font-size:25px; ">
+                        This voucher can only printed for posted entries.
+                    </span>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

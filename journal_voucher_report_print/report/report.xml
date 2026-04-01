@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="paperformat_voucher_report"
+            model="report.paperformat">
+        <field name="name">Customized Paper Format</field>
+        <field name="default" eval="True"/>
+        <field name="format">custom</field>
+        <field name="page_height">290</field>
+        <field name="page_width">230</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">25</field>
+        <field name="margin_bottom">25</field>
+        <field name="margin_left">2</field>
+        <field name="margin_right">2</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">25</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <record id="action_report_pdf_journal_voucher" model="ir.actions.report">
+        <field name="name">Journal Voucher</field>
+        <field name="model">account.move</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">journal_voucher_report_print.journal_voucher_report</field>
+        <field name="report_file">journal_voucher_report_print.journal_voucher_report</field>
+        <field name="binding_model_id" ref="account.model_account_move"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="paperformat_voucher_report"/>
+    </record>
+
+    <!--    <record id="paperformat_voucher_report" model="report.paperformat">-->
+    <!--        <field name="name">Customized Paper Format</field>-->
+    <!--        <field name="default" eval="True"/>-->
+    <!--        <field name="format">custom</field>-->
+    <!--        <field name="orientation">Portrait</field>-->
+    <!--        <field name="page_height">290</field>-->
+    <!--        <field name="page_width">230</field>-->
+    <!--        <field name="margin_top">25</field>-->
+    <!--        <field name="margin_bottom">25</field>-->
+    <!--        <field name="margin_left">2</field>-->
+    <!--        <field name="margin_right">2</field>-->
+    <!--        <field name="header_line" eval="False"/>-->
+    <!--        <field name="header_spacing">25</field>-->
+    <!--        <field name="dpi">90</field>-->
+    <!--    </record>-->
+    <!--    <record id="action_report_pdf_journal_voucher" model="ir.actions.report">-->
+    <!--        <field name="name">Journal Voucher report</field>-->
+    <!--        <field name="model">account.move</field>-->
+    <!--        <field name="report_type">qweb-pdf</field>-->
+    <!--        <field name="report_name">custom_report.journal_voucher_report</field>-->
+    <!--        <field name="report_file">custom_report.journal_voucher_report</field>-->
+    <!--        <field name="binding_model_id" ref="model_custom_report"/>-->
+    <!--        <field name="binding_type">report</field>-->
+    <!--        <field name="paperformat_id" ref="custom_report.paperformat_voucher_report"/>-->
+    <!--    </record>-->
+</odoo>

@@ -20,8 +20,12 @@
 #
 #############################################################################
 from datetime import date
+import io
+import json
+import xlsxwriter
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+from odoo.tools.json import json_default
 
 
 class BankBookWizard(models.TransientModel):
@@ -94,6 +98,13 @@ class BankBookWizard(models.TransientModel):
 
     def check_report(self):
         self.ensure_one()
+        data = self._prepare_report_data()
+        return self.env.ref(
+            'base_accounting_kit.action_report_bank_book').report_action(
+            self, data=data)
+
+    def _prepare_report_data(self):
+        self.ensure_one()
         if self.initial_balance and not self.date_from:
             raise UserError(_("You must choose a Start Date"))
         data = {}
@@ -107,6 +118,164 @@ class BankBookWizard(models.TransientModel):
         data['form']['used_context'] = dict(used_context,
                                             lang=self.env.context.get(
                                                 'lang') or 'en_US')
-        return self.env.ref(
-            'base_accounting_kit.action_report_bank_book').report_action(self,
-                                                                         data=data)
+        return data
+
+    def _get_accounts_for_report(self, form_data):
+        init_balance = form_data.get('initial_balance', True)
+        sortby = form_data.get('sortby', 'sort_date')
+        display_account = 'movement'
+        journal_codes = []
+        if form_data.get('journal_ids'):
+            journal_codes = [journal.code for journal in
+                             self.env['account.journal'].search(
+                                 [('id', 'in', form_data['journal_ids'])])]
+        account_ids = form_data.get('account_ids')
+        accounts = self.env['account.account'].search(
+            [('id', 'in', account_ids)])
+        if not accounts:
+            journals = self.env['account.journal'].search(
+                [('type', '=', 'bank')])
+            accounts = self.env['account.account'].search(
+                [('id', 'in', journals.mapped('default_account_id').ids)])
+        accounts_res = self.env[
+            'report.base_accounting_kit.report_bank_book'].with_context(
+            form_data.get('used_context', {}))._get_account_move_entry(
+            accounts, init_balance, sortby, display_account)
+        return accounts_res, journal_codes
+
+    def check_report_xlsx(self):
+        self.ensure_one()
+        data = self._prepare_report_data()
+        accounts_res, journal_codes = self._get_accounts_for_report(
+            data['form'])
+        options = {
+            'company_name': self.company_id.name,
+            'target_move': data['form'].get('target_move'),
+            'sortby': data['form'].get('sortby'),
+            'date_from': data['form'].get('date_from'),
+            'date_to': data['form'].get('date_to'),
+            'display_account': data['form'].get('display_account'),
+            'print_journal': journal_codes,
+            'accounts': accounts_res,
+        }
+        return {
+            'type': 'ir.actions.report',
+            'data': {
+                'model': 'account.bank.book.report',
+                'options': json.dumps(options, default=json_default),
+                'output_format': 'xlsx',
+                'report_name': 'Bank Book Report',
+            },
+            'report_type': 'xlsx',
+        }
+
+    def get_xlsx_report(self, data, response):
+        output = io.BytesIO()
+        workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+        sheet = workbook.add_worksheet('Bank Book')
+
+        title_format = workbook.add_format({
+            'bold': True, 'align': 'center', 'font_size': 14
+        })
+        label_format = workbook.add_format({'bold': True})
+        header_format = workbook.add_format({
+            'bold': True, 'align': 'center', 'border': 1
+        })
+        text_format = workbook.add_format({'border': 1})
+        amount_format = workbook.add_format({
+            'border': 1, 'align': 'right', 'num_format': '#,##0.00'
+        })
+        account_line_format = workbook.add_format({
+            'bold': True, 'border': 1
+        })
+        account_amount_format = workbook.add_format({
+            'bold': True, 'border': 1, 'align': 'right',
+            'num_format': '#,##0.00'
+        })
+
+        sheet.set_column(0, 0, 12)
+        sheet.set_column(1, 1, 10)
+        sheet.set_column(2, 2, 22)
+        sheet.set_column(3, 3, 20)
+        sheet.set_column(4, 4, 20)
+        sheet.set_column(5, 5, 28)
+        sheet.set_column(6, 8, 14)
+        sheet.set_column(9, 9, 18)
+
+        row = 0
+        sheet.merge_range(
+            row, 0, row, 9,
+            f"{data.get('company_name', '')}: Bank Book Report",
+            title_format
+        )
+        row += 2
+
+        sheet.write(row, 0, 'Journals:', label_format)
+        sheet.write(row, 1, ', '.join(data.get('print_journal', [])))
+        row += 1
+        sheet.write(row, 0, 'Target Moves:', label_format)
+        sheet.write(row, 1, 'All Entries' if data.get(
+            'target_move') == 'all' else 'All Posted Entries')
+        row += 1
+        sheet.write(row, 0, 'Sorted By:', label_format)
+        sheet.write(row, 1, 'Date' if data.get(
+            'sortby') == 'sort_date' else 'Journal and Partner')
+        row += 1
+        if data.get('date_from'):
+            sheet.write(row, 0, 'Date From:', label_format)
+            sheet.write(row, 1, data.get('date_from'))
+            row += 1
+        if data.get('date_to'):
+            sheet.write(row, 0, 'Date To:', label_format)
+            sheet.write(row, 1, data.get('date_to'))
+            row += 1
+
+        row += 1
+        headers = [
+            'Date', 'JRNL', 'Partner', 'Ref', 'Move', 'Entry Label',
+            'Debit', 'Credit', 'Balance', 'Currency'
+        ]
+        for col, title in enumerate(headers):
+            sheet.write(row, col, title, header_format)
+        row += 1
+
+        for account in data.get('accounts', []):
+            account_name = f"{account.get('code', '')} {account.get('name', '')}"
+            sheet.write(row, 0, account_name.strip(), account_line_format)
+            for col in range(1, 6):
+                sheet.write(row, col, '', account_line_format)
+            sheet.write_number(
+                row, 6, float(account.get('debit', 0.0)), account_amount_format)
+            sheet.write_number(
+                row, 7, float(account.get('credit', 0.0)), account_amount_format)
+            sheet.write_number(
+                row, 8, float(account.get('balance', 0.0)),
+                account_amount_format)
+            sheet.write(row, 9, '', account_line_format)
+            row += 1
+
+            for line in account.get('move_lines', []):
+                sheet.write(row, 0, line.get('ldate') or '', text_format)
+                sheet.write(row, 1, line.get('lcode') or '', text_format)
+                sheet.write(row, 2, line.get('partner_name') or '', text_format)
+                sheet.write(row, 3, line.get('lref') or '', text_format)
+                sheet.write(row, 4, line.get('move_name') or '', text_format)
+                sheet.write(row, 5, line.get('lname') or '', text_format)
+                sheet.write_number(
+                    row, 6, float(line.get('debit', 0.0)), amount_format)
+                sheet.write_number(
+                    row, 7, float(line.get('credit', 0.0)), amount_format)
+                sheet.write_number(
+                    row, 8, float(line.get('balance', 0.0)), amount_format)
+                currency_value = ''
+                if line.get('amount_currency') and line.get('amount_currency') > 0.0:
+                    currency_value = '%s %s' % (
+                        line.get('amount_currency'), line.get('currency_code') or ''
+                    )
+                sheet.write(row, 9, currency_value, text_format)
+                row += 1
+
+        workbook.close()
+        output.seek(0)
+        response.stream.write(output.read())
+        output.close()
