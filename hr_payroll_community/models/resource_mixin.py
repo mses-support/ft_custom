@@ -50,6 +50,8 @@ class ResourceMixin(models.AbstractModel):
         """
         resource = self.resource_id
         calendar = calendar or self.resource_calendar_id
+        if not calendar:
+            return {'days': 0, 'hours': 0}
         # naive datetime are made explicit in UTC
         if not from_datetime.tzinfo:
             from_datetime = from_datetime.replace(tzinfo=utc)
