@@ -86,8 +86,12 @@ class HrEmployee(models.Model):
         uid = request.session.uid
         employee = self.env['hr.employee'].sudo().search_read(
             [('user_id', '=', uid)], limit=1)
+        if not employee:
+            return False
+        employee_data = employee[0]
+        employee_id = employee_data['id']
         attendance = self.env['hr.attendance'].sudo().search_read(
-            [('employee_id', '=', employee[0]['id'])],
+            [('employee_id', '=', employee_id)],
             fields=['id', 'check_in', 'check_out', 'worked_hours'])
         attendance_line = []
         for line in attendance:
@@ -101,7 +105,7 @@ class HrEmployee(models.Model):
                 }
                 attendance_line.append(val)
         leaves = self.env['hr.leave'].sudo().search_read(
-            [('employee_id', '=', employee[0]['id'])],
+            [('employee_id', '=', employee_id)],
             fields=['request_date_from', 'request_date_to', 'state',
                     'holiday_status_id'])
         for line in leaves:
@@ -122,7 +126,7 @@ class HrEmployee(models.Model):
                 line['state'] = 'Refused'
                 line['color'] = 'red'
         expense = self.env['hr.expense'].sudo().search_read(
-            [('employee_id', '=', employee[0]['id'])],
+            [('employee_id', '=', employee_id)],
             fields=['name', 'date', 'state', 'total_amount'])
         for line in expense:
             if line['state'] == 'draft':
@@ -172,53 +176,49 @@ class HrEmployee(models.Model):
         timesheet_count = self.env['account.analytic.line'].sudo().search_count(
             [('project_id', '!=', False), ('user_id', '=', uid)])
         contract_count = self.env['hr.version'].sudo().search_count(
-            [('employee_id', '=', employee[0]['id'])])
+            [('employee_id', '=', employee_id)])
         timesheet_view_id = self.env.ref(
             'hr_timesheet.hr_timesheet_line_search')
         job_applications = self.env['hr.applicant'].sudo().search_count([])
-        if employee:
-            sql = """select broad_factor from hr_employee_broad_factor 
-            where id =%s"""
-            self.env.cr.execute(sql, (employee[0]['id'],))
-            result = self.env.cr.dictfetchall()
-            broad_factor = result[0]['broad_factor'] if result[0][
-                'broad_factor'] else False
-            if employee[0]['birthday']:
-                diff = relativedelta(datetime.today(), employee[0]['birthday'])
-                age = diff.years
-            else:
-                age = False
-            if employee[0]['joining_date']:
-                diff = relativedelta(datetime.today(),
-                                     employee[0]['joining_date'])
-                years = diff.years
-                months = diff.months
-                days = diff.days
-                experience = '{} years {} months {} days'.format(years, months,
-                                                                 days)
-            else:
-                experience = False
-            if employee:
-                data = {
-                    'broad_factor': broad_factor if broad_factor else 0,
-                    'leaves_to_approve': leaves_to_approve,
-                    'leaves_today': leaves_today,
-                    'leaves_this_month': leaves_this_month,
-                    'leaves_alloc_req': leaves_alloc_req,
-                    'emp_timesheets': timesheet_count,
-                    'contracts_count': contract_count,
-                    'job_applications': job_applications,
-                    'timesheet_view_id': timesheet_view_id,
-                    'experience': experience,
-                    'age': age,
-                    'attendance_lines': attendance_line,
-                    'leave_lines': leaves,
-                    'expense_lines': expense
-                }
-                employee[0].update(data)
-            return employee
+        sql = """select broad_factor from hr_employee_broad_factor
+        where id =%s"""
+        self.env.cr.execute(sql, (employee_id,))
+        result = self.env.cr.dictfetchall()
+        broad_factor = result[0]['broad_factor'] if result and result[0].get(
+            'broad_factor') else False
+        if employee_data.get('birthday'):
+            diff = relativedelta(datetime.today(), employee_data['birthday'])
+            age = diff.years
         else:
-            return False
+            age = False
+        if employee_data.get('joining_date'):
+            diff = relativedelta(datetime.today(),
+                                 employee_data['joining_date'])
+            years = diff.years
+            months = diff.months
+            days = diff.days
+            experience = '{} years {} months {} days'.format(years, months,
+                                                             days)
+        else:
+            experience = False
+        data = {
+            'broad_factor': broad_factor if broad_factor else 0,
+            'leaves_to_approve': leaves_to_approve,
+            'leaves_today': leaves_today,
+            'leaves_this_month': leaves_this_month,
+            'leaves_alloc_req': leaves_alloc_req,
+            'emp_timesheets': timesheet_count,
+            'contracts_count': contract_count,
+            'job_applications': job_applications,
+            'timesheet_view_id': timesheet_view_id,
+            'experience': experience,
+            'age': age,
+            'attendance_lines': attendance_line,
+            'leave_lines': leaves,
+            'expense_lines': expense
+        }
+        employee_data.update(data)
+        return employee
 
     @api.model
     def get_upcoming(self):
