@@ -10,6 +10,12 @@ import { user } from "@web/core/user";
 const actionRegistry = registry.category("actions");
 import { ActivityMenu } from "@hr_attendance/components/attendance_menu/attendance_menu";
 import { patch } from "@web/core/utils/patch";
+const emptyLoginEmployee = () => ({
+    attendance_lines: [],
+    leave_lines: [],
+    expense_lines: [],
+    project_task_lines: [],
+});
 export class HrDashboard extends Component{
     static template = 'HrDashboardMain';
     static props = ["*"];
@@ -25,17 +31,19 @@ export class HrDashboard extends Component{
         this.orm = useService("orm");
         this.state = useState({
             is_manager: false,
+            has_employee: false,
             date_range: 'week',
             dashboards_templates: ['LoginEmployeeDetails','ManagerDashboard', 'EmployeeDashboard'],
             employee_birthday: [],
             upcoming_events: [],
             announcements: [],
-            login_employee: [],
+            login_employee: emptyLoginEmployee(),
             templates: [],
         })
         onWillStart(async () => {
             this.isHrManager = await user.hasGroup("hr.group_hr_manager");
-            this.state.login_employee = {}
+            this.state.has_employee = false;
+            this.state.login_employee = emptyLoginEmployee();
             if ( await this.orm.call('hr.employee', 'check_user_group', []) ) {
                 this.state.is_manager = true
             }
@@ -43,8 +51,12 @@ export class HrDashboard extends Component{
                 this.state.is_manager = false
             }
             var empDetails = await this.orm.call('hr.employee', 'get_user_employee_details', [])
-            if ( empDetails ){
-                this.state.login_employee = empDetails[0]
+            if ( empDetails && empDetails.length ){
+                this.state.login_employee = {
+                    ...emptyLoginEmployee(),
+                    ...empDetails[0],
+                };
+                this.state.has_employee = true;
             }
             var res = await this.orm.call('hr.employee', 'get_upcoming', [])
             if ( res ) {
@@ -52,9 +64,9 @@ export class HrDashboard extends Component{
                 this.state.upcoming_events = res['event'];
                 this.state.announcements = res['announcement'];
             }
-            var projectTaskDetails = await this.orm.call('hr.employee', 'get_employee_project_tasks', [])
-            if (projectTaskDetails) {
-                this.state.login_employee['project_task_lines'] = projectTaskDetails;
+            if (this.state.has_employee) {
+                var projectTaskDetails = await this.orm.call('hr.employee', 'get_employee_project_tasks', [])
+                this.state.login_employee['project_task_lines'] = projectTaskDetails || [];
             }
         });
         onMounted(() => {

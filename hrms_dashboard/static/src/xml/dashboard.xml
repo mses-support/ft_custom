@@ -3,7 +3,7 @@
     <t t-name="HrDashboardMain">
         <div class="oh_dashboards">
             <div class="container-fluid o_hr_dashboard">
-                <t t-if="this.state.login_employee">
+                <t t-if="this.state.has_employee">
                     <t t-if="this.state.is_manager == true">
                         <t t-call="LoginEmployeeDetails"/>
                         <t t-call="EmployeeDashboard"/>
@@ -13,6 +13,9 @@
                         <t t-call="LoginEmployeeDetails"/>
                         <t t-call="EmployeeDashboard"/>
                     </t>
+                </t>
+                <t t-else="">
+                    <t t-call="EmployeeWarning"/>
                 </t>
             </div>
         </div>
