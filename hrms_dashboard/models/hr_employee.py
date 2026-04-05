@@ -248,11 +248,15 @@ class HrEmployee(models.Model):
              ('position_ids', 'in', employee.job_id.id),
              ], fields=['announcement_reason', 'date_start', 'date_end'])
 
-        events = self.env['event.event'].search_read(
-            domain=[('date_begin', '>=', fields.Datetime.now())],
-            fields=['id','name', 'date_begin', 'date_end', 'address_id'],
-            order='date_begin'
-        )
+        events_model = self.env['event.event']
+        if events_model.check_access_rights('read', raise_exception=False):
+            events = events_model.search_read(
+                domain=[('date_begin', '>=', fields.Datetime.now())],
+                fields=['id', 'name', 'date_begin', 'date_end', 'address_id'],
+                order='date_begin'
+            )
+        else:
+            events = []
 
         return {
             'birthday': birthday_employees,
