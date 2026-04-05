@@ -101,16 +101,17 @@ export class HrDashboard extends Component{
             }
     render_graphs(){
         var self = this;
-        if (this.state.login_employee){
-            if (this.state.is_manager) {
-             self.render_department_employee();
-                self.render_leave_graph();
-                self.update_join_resign_trends();
-                self.update_monthly_attrition();
-            }
-            self.update_leave_trend();
-            self.render_employee_skill();
+        if (!this.state.has_employee) {
+            return;
         }
+        if (this.state.is_manager) {
+         self.render_department_employee();
+            self.render_leave_graph();
+            self.update_join_resign_trends();
+            self.update_monthly_attrition();
+        }
+        self.update_leave_trend();
+        self.render_employee_skill();
     }
     async render_department_employee() {
         const colors = [

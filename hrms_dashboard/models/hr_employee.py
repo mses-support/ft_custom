@@ -411,6 +411,9 @@ class HrEmployee(models.Model):
                 'leave': 0
             }
             graph_result.append(vals)
+        if not employee:
+            return graph_result
+        employee_id = employee[0]['id']
         sql = """
                 SELECT h.id, h.employee_id
                      , extract('month' FROM y)::int AS leave_month
@@ -425,7 +428,7 @@ class HrEmployee(models.Model):
                 date_trunc('month', now()) - interval '6 month' and
                 date_trunc('month', GREATEST(y , h.date_from)) <= 
                 date_trunc('month', now()) and h.employee_id = %s """
-        self.env.cr.execute(sql, (employee[0]['id'],))
+        self.env.cr.execute(sql, (employee_id,))
         results = self.env.cr.dictfetchall()
         for line in results:
             employee = self.browse(line['employee_id'])
