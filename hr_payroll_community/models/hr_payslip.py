@@ -529,6 +529,60 @@ class HrPayslip(models.Model):
                                   rule._recursive_search_of_rules()]
         return list(result_dict.values())
 
+    @api.model
+    def onchange_employee_id(self, date_from, date_to, employee_id=False,
+                             contract_id=False):
+        """Backward-compatible payroll onchange API.
+
+        Legacy code paths (wizard/tests/3rd-party modules) still call
+        ``onchange_employee_id`` and expect a ``{'value': ...}`` payload.
+        Odoo now relies on record-style onchange methods, so we bridge both
+        styles here.
+        """
+        if not (employee_id and date_from and date_to):
+            return {'value': {
+                'name': False,
+                'struct_id': False,
+                'contract_id': contract_id or False,
+                'worked_days_line_ids': [],
+                'input_line_ids': [],
+            }}
+
+        slip = self.with_context(contract=bool(contract_id)).new({
+            'employee_id': employee_id,
+            'date_from': date_from,
+            'date_to': date_to,
+            'contract_id': contract_id or False,
+        })
+        if hasattr(slip, 'onchange_employee'):
+            slip.onchange_employee()
+        if hasattr(slip, '_onchange_employee_id'):
+            slip._onchange_employee_id()
+        values = slip._convert_to_write(slip._cache)
+
+        def _command_values(lines):
+            if not lines:
+                return []
+            if isinstance(lines[0], dict):
+                return lines
+            return [
+                line[2] for line in lines
+                if isinstance(line, (list, tuple))
+                and len(line) >= 3
+                and line[0] == 0
+                and isinstance(line[2], dict)
+            ]
+
+        return {'value': {
+            'name': values.get('name') or slip.name or False,
+            'struct_id': values.get('struct_id') or slip.struct_id.id or False,
+            'contract_id': values.get('contract_id') or
+                           slip.contract_id.id or False,
+            'worked_days_line_ids': _command_values(
+                values.get('worked_days_line_ids')),
+            'input_line_ids': _command_values(values.get('input_line_ids')),
+        }}
+
     @api.onchange('employee_id', )
     def onchange_employee(self):
         """Function for getting contract for employee"""

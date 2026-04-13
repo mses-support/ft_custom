@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="journal_customized_header">
+        <div class="header">
+            <div class="o_clean_header">
+                <div class="row text-dark" style="font-family:'Roboto',sans-serif;">
+                    <div class="col-8">
+                        <img t-if="res_company.logo" t-att-src="image_data_uri(res_company.logo)" alt="Logo"
+                             class="center"/>
+                        <!--                        <img t-if="res_company.logo" t-att-src="image_data_uri(res_company.logo)" alt="Logo" style="display: block; margin-left: auto;-->
+                        <!--                         margin-right:auto; max-width: 250px; max-height: 180px;"/>-->
+                    </div>
+                    <div class="col-4" style="text-align:right; font-size:11px;margin-top:15px;">
+                        <h7 style="color:black;">
+                            <t t-if="res_company.street">
+                                <t t-esc="res_company.street"/>,
+                                <br/>
+                                <t t-esc="res_company.street2"/>,
+                                <br/>
+                                <t t-esc="res_company.city"/>
+                            </t>
+                        </h7>
+                        <br/>
+                        <h7 style="color:black;">
+                            <t t-if="res_company.phone">
+                                <t t-esc="res_company.phone"/>
+                            </t>
+                        </h7>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+    <template id="journal_customized_footer">
+        <div class="footer">
+            <div class="row" style="font-size:13px;font-family:'Roboto',sans-serif;color:#191970">
+                <div class="col-4 text-center">
+                    <t t-esc="o.create_uid.name"/>
+                </div>
+                <div class="col-4"/>
+                <div class="col-4"/>
+            </div>
+
+            <div class="row" style="font-size:13px;font-family:'Roboto',sans-serif;color:#191970;">
+                <div class="col-4 text-center" style="text-decoration:overline;">
+                    <span>Prepared By
+                    </span>
+                </div>
+                <div class="col-4 text-center" style="text-decoration:overline;">
+                    <span>
+                        Checked By
+                    </span>
+                </div>
+
+                <div class="col-4 text-center" style="text-decoration:overline;">
+                    <span>Approved By
+                    </span>
+                </div>
+            </div>
+
+            <div class="row" style="font-size:11px;font-family:'Roboto',sans-serif;color:#191970;">
+                <div class="col-4 text-center" style="margin-top:30px;">
+                    <span>Printed By:
+                        <span t-esc="request.env.user.name"/>
+                    </span>
+                </div>
+                <div class="col-4 text-center" style="margin-top:30px;"/>
+
+                <div class="col-4 text-center" style="margin-top:30px;">
+                    <span>Print Date:
+                        <span t-esc="context_timestamp(datetime.datetime.now()).strftime('%d-%m-%Y')"/>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </template>
+</odoo>

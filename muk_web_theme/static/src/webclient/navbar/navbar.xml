@@ -7,7 +7,7 @@
 		t-inherit="web.NavBar.AppsMenu" 
 		t-inherit-mode="extension" 
 	>
-		<xpath expr="//Dropdown" position="replace">
+		<xpath expr="//div[contains(concat(' ', normalize-space(@class), ' '), ' o_navbar_apps_menu ')]/*[self::Dropdown or self::AppsMenu or (self::li and contains(concat(' ', normalize-space(@class), ' '), ' dropdown '))]" position="replace">
 			<AppsMenu menuClass="'mk_app_menu'">
 				<button data-hotkey="h" title="Home Menu">
 					<i class="oi oi-apps" />
