@@ -60,6 +60,21 @@ class StockRequest(models.AbstractModel):
         ondelete="cascade",
         required=True,
     )
+    request_type = fields.Selection(
+        selection=[
+            ("material", "Material"),
+            ("service", "Service"),
+            ("training", "Traning"),
+        ],
+        string="Request Type",
+        default="material",
+        required=True,
+        tracking=True,
+    )
+    product_categ_id = fields.Many2one(
+        comodel_name="product.category",
+        string="Category",
+    )
     allow_virtual_location = fields.Boolean(
         related="company_id.stock_request_allow_virtual_loc", readonly=True
     )
@@ -253,3 +268,26 @@ class StockRequest(models.AbstractModel):
     def onchange_product_id(self):
         if self.product_id:
             self.product_uom_id = self.product_id.uom_id
+
+    @api.onchange("product_categ_id")
+    def _onchange_product_categ_id(self):
+        if (
+            self.product_id
+            and self.product_categ_id
+            and f"{self.product_categ_id.id}/" not in (self.product_id.categ_id.parent_path or "")
+        ):
+            self.product_id = False
+        if self.product_categ_id:
+            return {
+                "domain": {
+                    "product_id": [
+                        ("type", "in", ["product", "consu"]),
+                        ("categ_id", "child_of", self.product_categ_id.id),
+                    ]
+                }
+            }
+        return {
+            "domain": {
+                "product_id": [("type", "in", ["product", "consu"])]
+            }
+        }

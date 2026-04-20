@@ -116,6 +116,7 @@
                             <field name="requested_by" />
                             <field name="store_keeper_user_id" />
                             <field name="expected_date" />
+                            <field name="request_type" />
                             <field name="picking_policy" />
                             <field name="state" readonly="1" />
                         </group>
@@ -148,13 +149,18 @@
                             'default_reference_id': reference_id,
                             'default_store_keeper_user_id': store_keeper_user_id,
                             'default_company_id': company_id,
+                            'default_request_type': request_type,
                             'default_state': state,
                             }"
                                 readonly="approval_state != 'draft'"
                             >
                                 <list editable="bottom">
                                     <field name="name" readonly="1" />
-                                    <field name="product_id" />
+                                    <field name="product_categ_id" />
+                                    <field
+                                        name="product_id"
+                                        domain="product_categ_id and [('type','in',['product','consu']), ('categ_id','child_of', product_categ_id)] or [('type','in',['product','consu'])]"
+                                    />
                                     <field
                                         name="product_uom_id"
                                         options="{'no_open': True, 'no_create': True}"

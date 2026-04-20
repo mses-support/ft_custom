@@ -245,6 +245,12 @@ class StockRequest(models.Model):
                     _("The picking policy must be equal to the order")
                 )
 
+    @api.constrains("order_id", "request_type")
+    def check_order_request_type(self):
+        for rec in self:
+            if rec.order_id and rec.order_id.request_type != rec.request_type:
+                raise ValidationError(_("Request type must be equal to the order"))
+
     def _action_confirm(self):
         self._action_launch_procurement_rule()
         self.filtered(lambda x: x.state != "done").write({"state": "open"})

@@ -4,6 +4,7 @@
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 from odoo.tools import html_escape
+from odoo.tools import float_compare
 
 _STATES = [
     ("draft", "Draft"),
@@ -386,3 +387,38 @@ class PurchaseRequest(models.Model):
                     )
                     % rec.name
                 )
+
+    @api.onchange("stock_request_id")
+    def _onchange_stock_request_id(self):
+        for rec in self:
+            if not rec.stock_request_id:
+                continue
+            existing_product_ids = rec.line_ids.mapped("product_id").ids
+            for stock_line in rec.stock_request_id.stock_request_ids:
+                if not stock_line.product_id:
+                    continue
+                qty_available = stock_line.product_id.with_context(
+                    location=rec.stock_request_id.source_location_id.id
+                ).qty_available
+                qty_available_in_line_uom = stock_line.product_id.uom_id._compute_quantity(
+                    qty_available,
+                    stock_line.product_uom_id,
+                    rounding_method="HALF-UP",
+                )
+                if float_compare(
+                    qty_available_in_line_uom,
+                    stock_line.product_uom_qty,
+                    precision_rounding=stock_line.product_uom_id.rounding,
+                ) >= 0:
+                    continue
+                if stock_line.product_id.id in existing_product_ids:
+                    continue
+                rec.line_ids += self.env["purchase.request.line"].new(
+                    {
+                        "product_id": stock_line.product_id.id,
+                        "product_uom_id": stock_line.product_uom_id.id,
+                        "product_qty": stock_line.product_uom_qty,
+                        "name": stock_line.product_id.display_name,
+                    }
+                )
+                existing_product_ids.append(stock_line.product_id.id)

@@ -118,6 +118,17 @@ class StockRequestOrder(models.Model):
         required=True,
         default=lambda self: self.env.company,
     )
+    request_type = fields.Selection(
+        selection=[
+            ("material", "Material"),
+            ("service", "Service"),
+            ("training", "Traning"),
+        ],
+        string="Request Type",
+        default="material",
+        required=True,
+        tracking=True,
+    )
     expected_date = fields.Datetime(
         default=fields.Datetime.now,
         index=True,
@@ -305,6 +316,10 @@ class StockRequestOrder(models.Model):
     def onchange_reference_id(self):
         self.change_childs()
 
+    @api.onchange("request_type")
+    def onchange_request_type(self):
+        self.change_childs()
+
     @api.onchange("company_id")
     def onchange_company_id(self):
         if self.company_id and (
@@ -327,6 +342,7 @@ class StockRequestOrder(models.Model):
                 line.requested_by = self.requested_by
                 line.store_keeper_user_id = self.store_keeper_user_id
                 line.reference_id = self.reference_id
+                line.request_type = self.request_type
 
     def action_submit(self):
         for order in self:

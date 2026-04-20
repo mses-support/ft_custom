@@ -28,6 +28,29 @@ class ReportTrialBalance(models.AbstractModel):
     _name = 'report.base_accounting_kit.report_trial_balance'
     _description = 'Trial Balance Report'
 
+    def _query_account_sums(self, accounts, move_line_model):
+        account_result = {}
+        tables, where_clause, where_params = move_line_model._query_get()
+        tables = tables.replace('"', '')
+        if not tables:
+            tables = 'account_move_line'
+        wheres = [""]
+        if where_clause.strip():
+            wheres.append(where_clause.strip())
+        filters = " AND ".join(wheres)
+        request = (
+            "SELECT account_id AS id, SUM(debit) AS debit, "
+            "SUM(credit) AS credit, (SUM(debit) - SUM(credit)) "
+            "AS balance"
+            " FROM " + tables + " WHERE account_id IN %s "
+            + filters + " GROUP BY account_id"
+        )
+        params = (tuple(accounts.ids),) + tuple(where_params)
+        self.env.cr.execute(request, params)
+        for row in self.env.cr.dictfetchall():
+            account_result[row.pop('id')] = row
+        return account_result
+
     def _get_accounts(self, accounts, display_account):
         """ compute the balance, debit and credit for the provided accounts
             :Arguments:
@@ -41,28 +64,18 @@ class ReportTrialBalance(models.AbstractModel):
                 `balance`: total amount of balance,
         """
 
-        account_result = {}
-        # Prepare sql query base on selected parameters from wizard
-        tables, where_clause, where_params = self.env[
-            'account.move.line']._query_get()
-        tables = tables.replace('"', '')
-        if not tables:
-            tables = 'account_move_line'
-        wheres = [""]
-        if where_clause.strip():
-            wheres.append(where_clause.strip())
-        filters = " AND ".join(wheres)
-        # compute the balance, debit and credit for the provided accounts
-        request = (
-                    "SELECT account_id AS id, SUM(debit) AS debit, "
-                    "SUM(credit) AS credit, (SUM(debit) - SUM(credit)) "
-                    "AS balance" +
-                    " FROM " + tables + " WHERE account_id IN %s " +
-                    filters + " GROUP BY account_id")
-        params = (tuple(accounts.ids),) + tuple(where_params)
-        self.env.cr.execute(request, params)
-        for row in self.env.cr.dictfetchall():
-            account_result[row.pop('id')] = row
+        move_line = self.env['account.move.line']
+        account_result = self._query_account_sums(accounts, move_line)
+        opening_result = {}
+        if self.env.context.get('date_from'):
+            opening_result = self._query_account_sums(
+                accounts,
+                move_line.with_context(
+                    date_from=self.env.context.get('date_from'),
+                    date_to=False,
+                    initial_bal=True,
+                ),
+            )
 
         account_res = []
         for account in accounts:
@@ -72,10 +85,13 @@ class ReportTrialBalance(models.AbstractModel):
                         account_company.currency_id)
             res['code'] = account.code
             res['name'] = account.name
+            opening_balance = opening_result.get(account.id, {}).get('balance', 0.0)
+            res['opening_balance'] = opening_balance
             if account.id in account_result:
                 res['debit'] = account_result[account.id].get('debit')
                 res['credit'] = account_result[account.id].get('credit')
                 res['balance'] = account_result[account.id].get('balance')
+            res['balance'] += opening_balance
             if display_account == 'all':
                 account_res.append(res)
             if display_account == 'not_zero' and not currency.is_zero(
