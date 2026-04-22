@@ -1,7 +1,7 @@
 {
     "name": "Fama Backend",
     "version": "19.0.1.0.0",
-    "depends": ["base","account","purchase"],
+    "depends": ["base", "account", "purchase", "hr"],
     "data": [
         "security/security.xml",
         'data/email_template.xml',
