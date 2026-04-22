@@ -4,7 +4,6 @@
     "depends": ["base", "account", "purchase", "hr"],
     "data": [
         "security/security.xml",
-        "data/ir_sequence_data.xml",
         'data/email_template.xml',
         'data/ir_cron.xml',
         "views/report_action.xml",
