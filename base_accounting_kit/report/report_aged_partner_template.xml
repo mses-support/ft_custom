@@ -2,103 +2,202 @@
 <odoo>
     <template id="report_agedpartnerbalance">
         <t t-call="web.html_container">
-            <t t-set="data_report_margin_top" t-value="12"/>
-            <t t-set="data_report_header_spacing" t-value="9"/>
-            <t t-set="data_report_dpi" t-value="110"/>
-            <t t-call="web.internal_layout">
-                <div class="page"><br/>
-                    <h2>Aged Partner Balance</h2>
-                    <div class="row mt32">
-                        <div class="col-3">
-                            <strong>Start Date:</strong>
-                            <p t-esc="data['date_from']"/>
+            <t t-set="data_report_margin_top" t-value="8"/>
+            <t t-set="data_report_header_spacing" t-value="0"/>
+            <t t-set="data_report_dpi" t-value="96"/>
+            <div class="page apb-root">
+                <t t-call="base_accounting_kit.report_common_header_and_style"/>
+                <style>
+                    .apb-root {
+                        clear: both;
+                        margin-top: 0 !important;
+                        padding-top: 0 !important;
+                        font-family: "DejaVu Sans", "Noto Sans", Arial, sans-serif;
+                        color: #10243e;
+                    }
+                    .apb-head-inner {
+                        display: table;
+                        width: 100%;
+                    }
+                    .apb-head-logo-wrap {
+                        display: table-cell;
+                        width: 120px;
+                        vertical-align: middle;
+                    }
+                    .apb-head-title-wrap {
+                        display: table-cell;
+                        vertical-align: middle;
+                        text-align: center;
+                    }
+                    .apb-head-logo {
+                        max-height: 54px;
+                        max-width: 110px;
+                        object-fit: contain;
+                    }
+                        .apb-head {
+                            background: #f1f4fa;
+                            border: 1px solid #d7deec;
+                            border-radius: 4px;
+                            padding: 12px 14px;
+                            margin-bottom: 12px;
+                        }
+                        .apb-title {
+                            color: #1f3b63;
+                            font-size: 22px;
+                            font-weight: 700;
+                            margin: 0;
+                            line-height: 1.2;
+                        }
+                        .apb-meta {
+                            width: 100%;
+                            border-collapse: separate;
+                            border-spacing: 0;
+                            margin-bottom: 10px;
+                        }
+                    .apb-meta td {
+                        padding: 4px 8px;
+                        vertical-align: top;
+                        font-size: 12px;
+                        line-height: 1.25;
+                    }
+                    .apb-meta .label {
+                        color: #475569;
+                        width: 18%;
+                        font-weight: 600;
+                        }
+                        .apb-table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            table-layout: fixed;
+                        }
+                    .apb-table th,
+                    .apb-table td {
+                        border: 1px solid #d7deec;
+                        padding: 7px 9px;
+                        font-size: 12px;
+                        line-height: 1.2;
+                    }
+                    .apb-table th {
+                        background: #eef2fb;
+                        color: #1f3b63;
+                        font-weight: 700;
+                        }
+                        .apb-table .partner-col {
+                            width: 30%;
+                            word-break: break-word;
+                        }
+                    .apb-table .amt-col {
+                        width: 10%;
+                        text-align: right;
+                        white-space: nowrap;
+                        font-family: "DejaVu Sans", "Noto Sans", Arial, sans-serif;
+                        font-weight: 600;
+                    }
+                        .apb-total-row td {
+                            background: #f8fafd;
+                            font-weight: 700;
+                        }
+                </style>
+                <div class="apb-head">
+                    <div class="apb-head-inner">
+                        <div class="apb-head-logo-wrap">
+                            <img t-if="env.company.logo" class="apb-head-logo" t-att-src="image_data_uri(env.company.logo)" alt="Logo"/>
                         </div>
-                        <div class="col-3">
-                            <strong>Period Length (days)</strong>
-                            <p t-esc="data['period_length']"/>
+                        <div class="apb-head-title-wrap">
+                        <h2 class="apb-title">Aged Partner Balance</h2>
                         </div>
                     </div>
-                    <div class="row mb32">
-                        <div class="col-3">
-                            <strong>Partner's:</strong>
-                            <p>
+                </div>
+                    <table class="apb-meta">
+                        <tr>
+                            <td class="label">Start Date</td>
+                            <td t-esc="data['date_from']"/>
+                            <td class="label">End Date</td>
+                            <td t-esc="data['date_to']"/>
+                        </tr>
+                        <tr>
+                            <td class="label">Period Length (days)</td>
+                            <td t-esc="data['period_length']"/>
+                            <td class="label">Partner Type</td>
+                            <td>
                                 <span t-if="data['result_selection'] == 'customer'">Receivable Accounts</span>
                                 <span t-if="data['result_selection'] == 'supplier'">Payable Accounts</span>
                                 <span t-if="data['result_selection'] == 'customer_supplier'">Receivable and Payable Accounts</span>
-                            </p>
-                        </div>
-                        <div class="col-3">
-                            <strong>Target Moves:</strong>
-                            <p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="label">Selected Partners</td>
+                            <td t-esc="selected_partner_names"/>
+                            <td class="label">Target Moves</td>
+                            <td>
                                 <span t-if="data['target_move'] == 'all'">All Entries</span>
                                 <span t-if="data['target_move'] == 'posted'">All Posted Entries</span>
-                            </p>
-                        </div>
-                    </div>
+                            </td>
+                        </tr>
+                    </table>
 
-                    <table class="table table-sm table-reports">
+                    <table class="apb-table">
                         <thead>
                             <tr>
-                                <th>Partners</th>
-                                <th class="text-right">
+                                <th class="partner-col">Partners</th>
+                                <th class="amt-col">
                                     <span>Not due</span>
                                 </th>
-                                <th class="text-right"><span t-esc="data['4']['name']"/></th>
-                                <th class="text-right"><span t-esc="data['3']['name']"/></th>
-                                <th class="text-right"><span t-esc="data['2']['name']"/></th>
-                                <th class="text-right"><span t-esc="data['1']['name']"/></th>
-                                <th class="text-right"><span t-esc="data['0']['name']"/></th>
-                                <th class="text-right">Total</th>
-                            </tr>
-                            <tr t-if="get_partner_lines">
-                                <th>Account Total</th>
-                                <th class="text-right"><span t-esc="get_direction[6]" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></th>
-                                <th class="text-right"><span t-esc="get_direction[4]" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></th>
-                                <th class="text-right"><span t-esc="get_direction[3]" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></th>
-                                <th class="text-right"><span t-esc="get_direction[2]" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></th>
-                                <th class="text-right"><span t-esc="get_direction[1]" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></th>
-                                <th class="text-right"><span t-esc="get_direction[0]" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></th>
-                                <th class="text-right"><span t-esc="get_direction[5]" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></th>
+                                <th class="amt-col"><span t-esc="data['4']['name']"/></th>
+                                <th class="amt-col"><span t-esc="data['3']['name']"/></th>
+                                <th class="amt-col"><span t-esc="data['2']['name']"/></th>
+                                <th class="amt-col"><span t-esc="data['1']['name']"/></th>
+                                <th class="amt-col"><span t-esc="data['0']['name']"/></th>
+                                <th class="amt-col">Total</th>
                             </tr>
                         </thead>
                         <tbody>
+                            <tr t-if="get_partner_lines" class="apb-total-row">
+                                <td>Account Total</td>
+                                <td class="amt-col"><span t-esc="get_direction[6]" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></td>
+                                <td class="amt-col"><span t-esc="get_direction[4]" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></td>
+                                <td class="amt-col"><span t-esc="get_direction[3]" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></td>
+                                <td class="amt-col"><span t-esc="get_direction[2]" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></td>
+                                <td class="amt-col"><span t-esc="get_direction[1]" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></td>
+                                <td class="amt-col"><span t-esc="get_direction[0]" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></td>
+                                <td class="amt-col"><span t-esc="get_direction[5]" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></td>
+                            </tr>
                             <tr t-foreach="get_partner_lines" t-as="partner">
-                                <td>
+                                <td class="partner-col">
                                     <span t-esc="partner['name']"/>
                                 </td>
-                                <td class="text-start">
+                                <td class="amt-col">
                                     <span t-esc="partner['direction']"
                                           t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
                                 </td>
-                                <td class="text-start">
+                                <td class="amt-col">
                                     <span t-esc="partner['4']"
                                           t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
                                 </td>
-                                <td class="text-start">
+                                <td class="amt-col">
                                     <span t-esc="partner['3']"
                                           t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
                                 </td>
-                                <td class="text-start">
+                                <td class="amt-col">
                                     <span t-esc="partner['2']"
                                           t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
                                 </td>
-                                <td class="text-start">
+                                <td class="amt-col">
                                     <span t-esc="partner['1']"
                                           t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
                                 </td>
-                                <td class="text-start">
+                                <td class="amt-col">
                                     <span t-esc="partner['0']"
                                           t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
                                 </td>
-                                <td class="text-start">
+                                <td class="amt-col">
                                     <span t-esc="partner['total']"
                                           t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
-                </div>
-            </t>
+            </div>
         </t>
     </template>
 </odoo>

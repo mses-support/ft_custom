@@ -172,6 +172,12 @@ class ReportGeneralLedger(models.AbstractModel):
         accounts_res = self.with_context(
             data['form'].get('used_context', {}))._get_account_move_entry(
             accounts, init_balance, sortby, display_account)
+        analytic_accounts = self.env['account.analytic.account'].browse(
+            data['form'].get('analytic_account_ids', [])
+        ).mapped('name')
+        analytic_plans = self.env['account.analytic.plan'].browse(
+            data['form'].get('analytic_plan_ids', [])
+        ).mapped('name')
         return {
             'doc_ids': docids,
             'doc_model': model,
@@ -180,4 +186,6 @@ class ReportGeneralLedger(models.AbstractModel):
             'time': time,
             'Accounts': accounts_res,
             'print_journal': codes,
+            'analytic_accounts': analytic_accounts,
+            'analytic_plans': analytic_plans,
         }

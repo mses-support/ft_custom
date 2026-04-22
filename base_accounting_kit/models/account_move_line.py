@@ -187,10 +187,22 @@ class AccountInvoiceLine(models.Model):
             domain += [('account_id', 'in', context['account_ids'].ids)]
 
         if context.get('analytic_tag_ids'):
-            domain += [('analytic_tag_ids', 'in', context['analytic_tag_ids'].ids)]
+            tag_ids = context['analytic_tag_ids'].ids if hasattr(context['analytic_tag_ids'], 'ids') else context['analytic_tag_ids']
+            domain += [('analytic_tag_ids', 'in', tag_ids)]
 
         if context.get('analytic_account_ids'):
-            domain += [('analytic_account_id', 'in', context['analytic_account_ids'].ids)]
+            analytic_account_ids = context['analytic_account_ids'].ids \
+                if hasattr(context['analytic_account_ids'], 'ids') else context['analytic_account_ids']
+            domain += [('analytic_distribution', 'in', analytic_account_ids)]
+
+        if context.get('analytic_plan_ids'):
+            analytic_plan_ids = context['analytic_plan_ids'].ids \
+                if hasattr(context['analytic_plan_ids'], 'ids') else context['analytic_plan_ids']
+            analytic_accounts = self.env['account.analytic.account'].search([('plan_id', 'in', analytic_plan_ids)]).ids
+            if analytic_accounts:
+                domain += [('analytic_distribution', 'in', analytic_accounts)]
+            else:
+                domain += [('id', '=', 0)]
 
         if context.get('partner_ids'):
             domain += [('partner_id', 'in', context['partner_ids'].ids)]

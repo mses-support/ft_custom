@@ -19,11 +19,14 @@
 #    If not, see <http://www.gnu.org/licenses/>.
 #
 #############################################################################
+import json
 from odoo import fields, models
 from odoo.tools.misc import get_lang
+from odoo.tools.json import json_default
+from .xlsx_mixin import ReportXlsxMixin
 
 
-class AccountTaxReport(models.TransientModel):
+class AccountTaxReport(models.TransientModel, ReportXlsxMixin):
     _name = 'kit.account.tax.report'
     _inherit = "account.report"
     _description = 'Tax Report'
@@ -82,3 +85,51 @@ class AccountTaxReport(models.TransientModel):
         return self.env.ref(
             'base_accounting_kit.action_report_account_tax').report_action(
             self, data=data)
+
+    def check_report_xlsx(self):
+        self.ensure_one()
+        data = {}
+        data['ids'] = self.env.context.get('active_ids', [])
+        data['model'] = self.env.context.get('active_model', 'ir.ui.menu')
+        data['form'] = self.read(['date_from', 'date_to', 'journal_ids', 'target_move', 'company_id'])[0]
+        used_context = self._build_contexts(data)
+        data['form']['used_context'] = dict(used_context, lang=get_lang(self.env).code)
+        lines = self.env['report.base_accounting_kit.report_tax'].get_lines(data['form'])
+        options = {
+            'company_name': self.company_id.name,
+            'company_logo': self.company_id.logo,
+            'date_from': data['form'].get('date_from'),
+            'date_to': data['form'].get('date_to'),
+            'lines': lines,
+        }
+        return {
+            'type': 'ir.actions.report',
+            'data': {
+                'model': 'kit.account.tax.report',
+                'options': json.dumps(options, default=json_default),
+                'output_format': 'xlsx',
+                'report_name': 'Tax Report',
+            },
+            'report_type': 'xlsx',
+        }
+
+    def get_xlsx_report(self, data, response):
+        rows = []
+        for line in data.get('lines', {}).get('sale', []):
+            rows.append({'values': [line.get('name') or '', float(line.get('net', 0.0)), float(line.get('tax', 0.0))]})
+        rows.append({'type': 'section', 'values': ['Purchase', '', '']})
+        for line in data.get('lines', {}).get('purchase', []):
+            rows.append({'values': [line.get('name') or '', float(line.get('net', 0.0)), float(line.get('tax', 0.0))]})
+        table = {
+            'sheet_name': 'Tax Report',
+            'title': f"{data.get('company_name', '')}: Tax Report",
+            'company_logo': data.get('company_logo'),
+            'meta': [
+                ('Date From:', data.get('date_from') or ''),
+                ('Date To:', data.get('date_to') or ''),
+            ],
+            'headers': ['Sale', 'Net', 'Tax'],
+            'column_widths': [(0, 0, 36), (1, 2, 18)],
+            'rows': rows,
+        }
+        self._render_xlsx_table(table, response)

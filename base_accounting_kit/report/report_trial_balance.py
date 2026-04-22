@@ -87,6 +87,8 @@ class ReportTrialBalance(models.AbstractModel):
             res['name'] = account.name
             opening_balance = opening_result.get(account.id, {}).get('balance', 0.0)
             res['opening_balance'] = opening_balance
+            res['opening_debit'] = opening_balance if opening_balance > 0 else 0.0
+            res['opening_credit'] = -opening_balance if opening_balance < 0 else 0.0
             if account.id in account_result:
                 res['debit'] = account_result[account.id].get('debit')
                 res['credit'] = account_result[account.id].get('credit')

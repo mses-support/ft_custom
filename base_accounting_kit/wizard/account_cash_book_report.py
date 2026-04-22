@@ -20,11 +20,14 @@
 #
 #############################################################################
 from datetime import date
+import json
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+from odoo.tools.json import json_default
+from .xlsx_mixin import ReportXlsxMixin
 
 
-class CashBookWizard(models.TransientModel):
+class CashBookWizard(models.TransientModel, ReportXlsxMixin):
     _name = 'account.cash.book.report'
     _description = 'Account Cash Book Report'
 
@@ -108,3 +111,124 @@ class CashBookWizard(models.TransientModel):
         return self.env.ref(
             'base_accounting_kit.action_report_cash_book').report_action(self,
                                                                          data=data)
+
+    def _prepare_report_data(self):
+        self.ensure_one()
+        if self.initial_balance and not self.date_from:
+            raise UserError(_("You must choose a Start Date"))
+        data = {}
+        data['ids'] = self.env.context.get('active_ids', [])
+        data['model'] = self.env.context.get('active_model', 'ir.ui.menu')
+        data['form'] = self.read(
+            ['date_from', 'date_to', 'journal_ids', 'target_move',
+             'display_account', 'account_ids', 'sortby', 'initial_balance'])[0]
+        used_context = self._build_contexts(data)
+        data['form']['used_context'] = dict(
+            used_context, lang=self.env.context.get('lang') or 'en_US')
+        return data
+
+    def _get_accounts_for_report(self, form_data):
+        init_balance = form_data.get('initial_balance', True)
+        sortby = form_data.get('sortby', 'sort_date')
+        display_account = 'movement'
+        journal_codes = []
+        if form_data.get('journal_ids'):
+            journal_codes = [journal.code for journal in
+                             self.env['account.journal'].search(
+                                 [('id', 'in', form_data['journal_ids'])])]
+        account_ids = form_data.get('account_ids')
+        accounts = self.env['account.account'].search(
+            [('id', 'in', account_ids)])
+        if not accounts:
+            journals = self.env['account.journal'].search(
+                [('type', '=', 'cash')])
+            accounts = self.env['account.account'].search(
+                [('id', 'in', journals.mapped('default_account_id').ids)])
+        accounts_res = self.env[
+            'report.base_accounting_kit.report_cash_book'].with_context(
+            form_data.get('used_context', {}))._get_account_move_entry(
+            accounts, init_balance, sortby, display_account)
+        return accounts_res, journal_codes
+
+    def check_report_xlsx(self):
+        self.ensure_one()
+        data = self._prepare_report_data()
+        accounts_res, journal_codes = self._get_accounts_for_report(
+            data['form'])
+        options = {
+            'company_name': self.company_id.name,
+            'company_logo': self.company_id.logo,
+            'target_move': data['form'].get('target_move'),
+            'sortby': data['form'].get('sortby'),
+            'date_from': data['form'].get('date_from'),
+            'date_to': data['form'].get('date_to'),
+            'display_account': data['form'].get('display_account'),
+            'print_journal': journal_codes,
+            'accounts': accounts_res,
+        }
+        return {
+            'type': 'ir.actions.report',
+            'data': {
+                'model': 'account.cash.book.report',
+                'options': json.dumps(options, default=json_default),
+                'output_format': 'xlsx',
+                'report_name': 'Cash Book Report',
+            },
+            'report_type': 'xlsx',
+        }
+
+    def get_xlsx_report(self, data, response):
+        rows = []
+        for account in data.get('accounts', []):
+            rows.append({
+                'type': 'section',
+                'values': [
+                    f"{account.get('code', '')} {account.get('name', '')}".strip(),
+                    '', '', '', '', '',
+                    float(account.get('debit', 0.0)),
+                    float(account.get('credit', 0.0)),
+                    float(account.get('balance', 0.0)),
+                    '',
+                ],
+            })
+            for line in account.get('move_lines', []):
+                currency_value = ''
+                if line.get('amount_currency') and line.get('amount_currency') > 0.0:
+                    currency_value = '%s %s' % (
+                        line.get('amount_currency'),
+                        line.get('currency_code') or ''
+                    )
+                rows.append({
+                    'values': [
+                        line.get('ldate') or '',
+                        line.get('lcode') or '',
+                        line.get('partner_name') or '',
+                        line.get('lref') or '',
+                        line.get('move_name') or '',
+                        line.get('lname') or '',
+                        float(line.get('debit', 0.0)),
+                        float(line.get('credit', 0.0)),
+                        float(line.get('balance', 0.0)),
+                        currency_value,
+                    ],
+                })
+
+        table = {
+            'sheet_name': 'Cash Book',
+            'title': f"{data.get('company_name', '')}: Cash Book Report",
+            'company_logo': data.get('company_logo'),
+            'meta': [
+                ('Journals:', ', '.join(data.get('print_journal', []))),
+                ('Target Moves:', 'All Entries' if data.get('target_move') == 'all' else 'All Posted Entries'),
+                ('Sorted By:', 'Date' if data.get('sortby') == 'sort_date' else 'Journal and Partner'),
+                ('Date From:', data.get('date_from') or ''),
+                ('Date To:', data.get('date_to') or ''),
+            ],
+            'headers': ['Date', 'JRNL', 'Partner', 'Ref', 'Move', 'Entry Label', 'Debit', 'Credit', 'Balance', 'Currency'],
+            'column_widths': [
+                (0, 0, 12), (1, 1, 10), (2, 2, 22), (3, 3, 20),
+                (4, 4, 20), (5, 5, 32), (6, 8, 14), (9, 9, 18),
+            ],
+            'rows': rows,
+        }
+        self._render_xlsx_table(table, response)

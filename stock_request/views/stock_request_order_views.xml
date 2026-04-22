@@ -174,6 +174,7 @@
                                     />
                                     <field name="route_ids" invisible="1" />
                                     <field name="product_uom_qty" />
+                                    <field name="comment" optional="show" />
                                     <field name="qty_in_progress" />
                                     <field name="qty_done" />
                                     <field name="expected_date" invisible="1" />

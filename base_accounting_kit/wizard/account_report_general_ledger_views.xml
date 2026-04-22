@@ -10,6 +10,8 @@
                 <field name="sortby" widget="radio"/>
                 <field name="display_account" widget="radio"/>
                 <field name="initial_balance"/>
+                <field name="analytic_plan_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                <field name="analytic_account_ids" widget="many2many_tags" options="{'no_create': True}"/>
                 <newline/>
             </xpath>
         </field>

@@ -103,6 +103,7 @@ class StockRequest(models.Model):
         inverse_name="stock_request_id",
         string="Stock Request Allocation",
     )
+    comment = fields.Text(string="Comment")
     order_id = fields.Many2one("stock.request.order", readonly=True)
 
     _sql_constraints = [
