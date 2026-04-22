@@ -6,7 +6,10 @@ class HrEmployee(models.Model):
 
     employee_code = fields.Char(
         string="Employee Code",
-        copy=False
+        copy=False,
+        readonly=True,
+        index=True,
+        default="New",
     )
 
     housing_allowance = fields.Monetary(
@@ -111,3 +114,12 @@ class HrEmployee(models.Model):
                     template.send_mail(emp.id, force_send=True)
 
                 emp.iqama_expiry_notified = True
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if not vals.get('employee_code') or vals.get('employee_code') in {'New', '/'}:
+                vals['employee_code'] = self.env['ir.sequence'].next_by_code(
+                    'ft_backend.employee.code'
+                ) or 'EMP00000'
+        return super().create(vals_list)

@@ -47,7 +47,7 @@ class HrInsurance(models.Model):
     state = fields.Selection([('active', 'Active'),
                               ('expired', 'Expired'), ],
                              default='active', string="State",
-                             compute='_compute_status',
+                             compute='_compute_status', store=True,
                              help="State for the insurance")
     company_id = fields.Many2one('res.company', string='Company',
                                  required=True, help="Company",
