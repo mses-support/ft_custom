@@ -44,6 +44,12 @@ class AccountTaxReport(models.TransientModel, ReportXlsxMixin):
     company_id = fields.Many2one('res.company', string='Company', required=True, readonly=True, default=lambda self: self.env.company)
     name = fields.Char(string="Tax Report", default="Tax Report",
                        required=True, translate=True)
+    tax_scope = fields.Selection(
+        [('all', 'Sales and Purchase'), ('sale', 'Sales Tax'), ('purchase', 'Purchase Tax')],
+        string='Tax Scope',
+        required=True,
+        default=lambda self: self.env.context.get('default_tax_scope', 'all'),
+    )
     date_from = fields.Date(string='Start Date')
     date_to = fields.Date(string='End Date')
     journal_ids = fields.Many2many(
@@ -72,7 +78,7 @@ class AccountTaxReport(models.TransientModel, ReportXlsxMixin):
         data = {}
         data['ids'] = self.env.context.get('active_ids', [])
         data['model'] = self.env.context.get('active_model', 'ir.ui.menu')
-        data['form'] = self.read(['date_from', 'date_to', 'journal_ids', 'target_move', 'company_id'])[0]
+        data['form'] = self.read(['date_from', 'date_to', 'journal_ids', 'target_move', 'company_id', 'tax_scope'])[0]
         used_context = self._build_contexts(data)
         data['form']['used_context'] = dict(used_context, lang=get_lang(self.env).code)
         return self.with_context(discard_logo_check=True)._print_report(data)
@@ -82,6 +88,7 @@ class AccountTaxReport(models.TransientModel, ReportXlsxMixin):
         return data
 
     def _print_report(self, data):
+        data['form'].update({'tax_scope': self.tax_scope})
         return self.env.ref(
             'base_accounting_kit.action_report_account_tax').report_action(
             self, data=data)
@@ -91,16 +98,23 @@ class AccountTaxReport(models.TransientModel, ReportXlsxMixin):
         data = {}
         data['ids'] = self.env.context.get('active_ids', [])
         data['model'] = self.env.context.get('active_model', 'ir.ui.menu')
-        data['form'] = self.read(['date_from', 'date_to', 'journal_ids', 'target_move', 'company_id'])[0]
+        data['form'] = self.read(['date_from', 'date_to', 'journal_ids', 'target_move', 'company_id', 'tax_scope'])[0]
         used_context = self._build_contexts(data)
         data['form']['used_context'] = dict(used_context, lang=get_lang(self.env).code)
         lines = self.env['report.base_accounting_kit.report_tax'].get_lines(data['form'])
+        scope = data['form'].get('tax_scope', 'all')
+        report_name = {
+            'sale': 'Sales Tax Report',
+            'purchase': 'Purchase Tax Report',
+        }.get(scope, 'Tax Report')
         options = {
             'company_name': self.company_id.name,
             'company_logo': self.company_id.logo,
             'date_from': data['form'].get('date_from'),
             'date_to': data['form'].get('date_to'),
+            'tax_scope': scope,
             'lines': lines,
+            'report_name': report_name,
         }
         return {
             'type': 'ir.actions.report',
@@ -108,28 +122,62 @@ class AccountTaxReport(models.TransientModel, ReportXlsxMixin):
                 'model': 'kit.account.tax.report',
                 'options': json.dumps(options, default=json_default),
                 'output_format': 'xlsx',
-                'report_name': 'Tax Report',
+                'report_name': report_name,
             },
             'report_type': 'xlsx',
         }
 
     def get_xlsx_report(self, data, response):
+        scope = data.get('tax_scope', 'all')
+        headers = {
+            'sale': ['Date', 'Invoice No', 'Customer Name', 'Customer VAT No', 'Taxable Amount', 'VAT %', 'VAT Amount', 'Total Amount', 'Tax Code'],
+            'purchase': ['Date', 'Bill No', 'Vendor Name', 'Vendor VAT No', 'Taxable Amount', 'VAT %', 'VAT Amount', 'Total Amount', 'Tax Code'],
+        }.get(scope, ['Date', 'Document No', 'Partner Name', 'Partner VAT No', 'Taxable Amount', 'VAT %', 'VAT Amount', 'Total Amount', 'Tax Code'])
         rows = []
-        for line in data.get('lines', {}).get('sale', []):
-            rows.append({'values': [line.get('name') or '', float(line.get('net', 0.0)), float(line.get('tax', 0.0))]})
-        rows.append({'type': 'section', 'values': ['Purchase', '', '']})
-        for line in data.get('lines', {}).get('purchase', []):
-            rows.append({'values': [line.get('name') or '', float(line.get('net', 0.0)), float(line.get('tax', 0.0))]})
+        if scope in ('all', 'sale'):
+            if scope == 'all':
+                rows.append({'type': 'section', 'values': ['2. Sales VAT Details (Output VAT)', '', '', '', '', '', '', '', '']})
+            for line in data.get('lines', {}).get('sale', []):
+                rows.append({'values': [
+                    line.get('date') or '',
+                    line.get('number') or '',
+                    line.get('partner_name') or '',
+                    line.get('partner_vat') or '',
+                    float(line.get('taxable_amount', 0.0)),
+                    line.get('vat_percent') or '',
+                    float(line.get('vat_amount', 0.0)),
+                    float(line.get('total_amount', 0.0)),
+                    line.get('tax_code') or '',
+                ]})
+        if scope in ('all', 'purchase'):
+            if scope == 'all':
+                rows.append({'type': 'section', 'values': ['3. Purchase VAT Details (Input VAT)', '', '', '', '', '', '', '', '']})
+            for line in data.get('lines', {}).get('purchase', []):
+                rows.append({'values': [
+                    line.get('date') or '',
+                    line.get('number') or '',
+                    line.get('partner_name') or '',
+                    line.get('partner_vat') or '',
+                    float(line.get('taxable_amount', 0.0)),
+                    line.get('vat_percent') or '',
+                    float(line.get('vat_amount', 0.0)),
+                    float(line.get('total_amount', 0.0)),
+                    line.get('tax_code') or '',
+                ]})
         table = {
             'sheet_name': 'Tax Report',
-            'title': f"{data.get('company_name', '')}: Tax Report",
+            'title': f"{data.get('company_name', '')}: {data.get('report_name', 'Tax Report')}",
             'company_logo': data.get('company_logo'),
             'meta': [
+                ('Tax Scope:', {
+                    'sale': 'Sales Tax',
+                    'purchase': 'Purchase Tax',
+                }.get(scope, 'Sales and Purchase')),
                 ('Date From:', data.get('date_from') or ''),
                 ('Date To:', data.get('date_to') or ''),
             ],
-            'headers': ['Sale', 'Net', 'Tax'],
-            'column_widths': [(0, 0, 36), (1, 2, 18)],
+            'headers': headers,
+            'column_widths': [(0, 0, 13), (1, 1, 18), (2, 2, 22), (3, 3, 20), (4, 4, 16), (5, 5, 10), (6, 7, 16), (8, 8, 16)],
             'rows': rows,
         }
         self._render_xlsx_table(table, response)

@@ -19,8 +19,7 @@
 #    If not, see <http://www.gnu.org/licenses/>.
 #
 #############################################################################
-from _datetime import datetime
-from odoo import api, models, _
+from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 
 
@@ -33,82 +32,94 @@ class ReportTax(models.AbstractModel):
         if not data.get('form'):
             raise UserError(
                 _("Form content is missing, this report cannot be printed."))
+        scope = data['form'].get('tax_scope', 'all')
+        report_name = {
+            'sale': 'Sales Tax Report',
+            'purchase': 'Purchase Tax Report',
+        }.get(scope, 'Tax Report')
         return {
             'data': data['form'],
             'lines': self.get_lines(data.get('form')),
+            'report_name': report_name,
         }
 
-    def _sql_from_amls_one(self):
-        sql = """SELECT "account_move_line".tax_line_id, COALESCE(SUM("account_move_line".debit-"account_move_line".credit), 0)
-                    FROM %s
-                    WHERE %s  GROUP BY "account_move_line".tax_line_id"""
-        return sql
+    @api.model
+    def _get_company_id(self, options):
+        company_value = options.get('company_id')
+        if isinstance(company_value, (list, tuple)):
+            return company_value[0]
+        return company_value or self.env.company.id
 
-    def _sql_from_amls_two(self):
-        sql = """SELECT r.account_tax_id, COALESCE(SUM("account_move_line".debit-"account_move_line".credit), 0)
-                 FROM %s
-                 INNER JOIN account_move_line_account_tax_rel r ON ("account_move_line".id = r.account_move_line_id)
-                 INNER JOIN account_tax t ON (r.account_tax_id = t.id)
-                 WHERE %s GROUP BY r.account_tax_id"""
-        return sql
+    @api.model
+    def _get_move_domain(self, options, section):
+        move_types = {
+            'sale': ('out_invoice', 'out_refund'),
+            'purchase': ('in_invoice', 'in_refund'),
+        }
+        domain = [
+            ('company_id', '=', self._get_company_id(options)),
+            ('move_type', 'in', move_types[section]),
+        ]
+        if options.get('target_move') == 'posted':
+            domain.append(('state', '=', 'posted'))
+        else:
+            domain.append(('state', 'in', ('draft', 'posted')))
+        if options.get('journal_ids'):
+            domain.append(('journal_id', 'in', options['journal_ids']))
+        if options.get('date_from'):
+            domain.append(('date', '>=', options['date_from']))
+        if options.get('date_to'):
+            domain.append(('date', '<=', options['date_to']))
+        return domain
 
-    def _compute_from_amls(self, options, taxes):
-        # compute the tax amount
-        sql = self._sql_from_amls_one()
-        tables, where_clause, where_params = self.env[
-            'account.move.line']._query_get()
+    @api.model
+    def _format_vat_percent(self, tax):
+        if tax.amount_type in ('percent', 'division'):
+            return f"{tax.amount:g}%"
+        return ''
 
-        query = sql % (tables, where_clause)
-        self.env.cr.execute(query, where_params)
-        results = self.env.cr.fetchall()
-        for result in results:
-            if result[0] in taxes:
-                taxes[result[0]]['tax'] = abs(result[1])
-
-        # compute the net amount
-        sql2 = self._sql_from_amls_two()
-        query = sql2 % (tables, where_clause)
-        self.env.cr.execute(query, where_params)
-        results = self.env.cr.fetchall()
-        for result in results:
-            if result[0] in taxes:
-                taxes[result[0]]['net'] = abs(result[1])
+    @api.model
+    def _prepare_rows(self, options, section):
+        moves = self.env['account.move'].search(
+            self._get_move_domain(options, section),
+            order='invoice_date asc, date asc, id asc',
+        )
+        rows = []
+        for move in moves:
+            tax_lines = move.line_ids.filtered(lambda line: line.tax_line_id and not line.display_type)
+            for tax_line in tax_lines:
+                tax = tax_line.tax_line_id
+                if tax.type_tax_use not in (section, 'none'):
+                    continue
+                taxable_amount = abs(tax_line.tax_base_amount or 0.0)
+                vat_amount = abs(tax_line.balance or 0.0)
+                if not taxable_amount and not vat_amount:
+                    continue
+                line_date = move.invoice_date or move.date
+                line_date = fields.Date.to_date(line_date).strftime('%d-%m-%Y') if line_date else ''
+                number = move.name if move.name and move.name != '/' else (move.ref or '')
+                rows.append({
+                    'date': line_date,
+                    'number': number,
+                    'partner_name': move.partner_id.name or '',
+                    'partner_vat': move.partner_id.vat or '',
+                    'taxable_amount': taxable_amount,
+                    'vat_percent': self._format_vat_percent(tax),
+                    'vat_amount': vat_amount,
+                    'total_amount': taxable_amount + vat_amount,
+                    'tax_code': tax.name or '',
+                })
+        return rows
 
     @api.model
     def get_lines(self, options):
-        taxes = {}
-        for tax in self.env['account.tax'].search(
-                [('type_tax_use', '!=', 'none')]):
-            if tax.children_tax_ids:
-                for child in tax.children_tax_ids:
-                    if child.type_tax_use != 'none':
-                        continue
-                    taxes[child.id] = {'tax': 0, 'net': 0, 'name': child.name,
-                                       'type': tax.type_tax_use}
-            else:
-                taxes[tax.id] = {'tax': 0, 'net': 0, 'name': tax.name,
-                                 'type': tax.type_tax_use}
-        if options['date_from'] and not options['date_to']:
-            self.with_context(date_from=options['date_from'],
-                              strict_range=True)._compute_from_amls(options,
-                                                                    taxes)
-        elif options['date_to'] and not options['date_from']:
-            self.with_context(date_to=options['date_to'],
-                              strict_range=True)._compute_from_amls(options,
-                                                                    taxes)
-        elif options['date_from'] and options['date_to']:
-            self.with_context(date_from=options['date_from'],
-                              date_to=options['date_to'],
-                              strict_range=True)._compute_from_amls(options,
-                                                                    taxes)
-        else:
-            date_to = str(datetime.today().date())
-            self.with_context(date_to=date_to,
-                              strict_range=True)._compute_from_amls(options,
-                                                                    taxes)
-
-        groups = dict((tp, []) for tp in ['sale', 'purchase'])
-        for tax in taxes.values():
-            if tax['tax']:
-                groups[tax['type']].append(tax)
+        groups = {
+            'sale': self._prepare_rows(options, 'sale'),
+            'purchase': self._prepare_rows(options, 'purchase'),
+        }
+        scope = options.get('tax_scope', 'all')
+        if scope == 'sale':
+            groups['purchase'] = []
+        elif scope == 'purchase':
+            groups['sale'] = []
         return groups

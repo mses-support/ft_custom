@@ -59,7 +59,6 @@
 
     <!-- Cleanup: Journal Entry report was removed from the module -->
     <record id="action_journal_entry_report" model="ir.actions.report" forcecreate="0">
-        <field name="active" eval="False"/>
         <field name="binding_model_id" eval="False"/>
     </record>
 

@@ -4,6 +4,11 @@ from datetime import timedelta
 class HrEmployee(models.Model):
     _inherit = 'hr.employee'
 
+    employee_code = fields.Char(
+        string="Employee Code",
+        copy=False
+    )
+
     housing_allowance = fields.Monetary(
         string="Housing Allowance",
         currency_field='currency_id'
@@ -106,4 +111,3 @@ class HrEmployee(models.Model):
                     template.send_mail(emp.id, force_send=True)
 
                 emp.iqama_expiry_notified = True
-

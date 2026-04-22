@@ -47,6 +47,7 @@
            <xpath expr="//group[@name='citizenship']" position="inside">
 
     <separator string="Iqama Details"/>
+    <field name="employee_code"/>
 
     <field name="iqama_number"/>
 

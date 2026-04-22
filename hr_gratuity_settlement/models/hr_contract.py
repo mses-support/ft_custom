@@ -1,0 +1,118 @@
+# -*- coding: utf-8 -*-
+#############################################################################
+#    A part of Open HRMS Project <https://www.openhrms.com>
+#
+#    Cybrosys Technologies Pvt. Ltd.
+#
+#    Copyright (C) 2025-TODAY Cybrosys Technologies(<https://www.cybrosys.com>)
+#    Author: Cybrosys Techno Solutions(<https://www.cybrosys.com>)
+#
+#    You can modify it under the terms of the GNU LESSER
+#    GENERAL PUBLIC LICENSE (LGPL v3), Version 3.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU LESSER GENERAL PUBLIC LICENSE (LGPL v3) for more details.
+#
+#    You should have received a copy of the GNU LESSER GENERAL PUBLIC LICENSE
+#    (LGPL v3) along with this program.
+#    If not, see <http://www.gnu.org/licenses/>.
+#
+#############################################################################
+from odoo import api, fields, models, _
+from odoo.exceptions import UserError
+
+
+class HrContract(models.Model):
+    """Inheriting hr_contract model"""
+    _inherit = 'hr.version'
+
+    training_info = fields.Text(string='Probationary Info',
+                                help='Probationary Info of the candidate.')
+    waiting_for_approval = fields.Boolean(
+        string="Waiting for Approval",
+        help='Is true, the candidate is waiting for approval')
+    is_approve = fields.Boolean(
+        string="Is Approved", help='The candidate has been approved')
+    state = fields.Selection(
+        selection=[ ('draft', 'New'), ('probation', 'Probation'),
+                    ('open', 'Running'), ('close', 'Expired'),
+                    ('cancel', 'Cancelled'), ], string="State",
+        default='draft',
+        help="State of the contract")
+    probation_id = fields.Many2one('hr.training', string="Probation",
+                                   help="Select the probation for the candidate.")
+    half_leave_ids = fields.Many2many(
+        'hr.leave', string="Half Leave",
+        help="Half Leaves of the candidate.")
+    training_amount = fields.Float(
+        string='Training Amount', help="amount for the employee during training")
+    company_country_id = fields.Many2one(
+        'res.country', string="Company country", readonly=True,
+        related='company_id.country_id', help="Country of the company.")
+    wage_type = fields.Selection(
+        [('monthly', 'Monthly Fixed Wage'), ('hourly', 'Hourly Wage')],
+        string="Wage Type", help="Wage type of the employee.")
+    hourly_wage = fields.Monetary(
+        string='Hourly Wage', default=0, required=True,
+        tracking=True, help="Employee's hourly gross wage.")
+
+    @api.onchange('trial_date_end')
+    def _onchange_trial_date_end(self):
+        """function used for changing state draft to probation
+        when the end of trail date setting"""
+        if self.trial_date_end:
+            self.state = 'probation'
+
+    @api.onchange('employee_id')
+    def _onchange_employee_id(self):
+        """function for changing employee id of hr.training"""
+        if self.probation_id and self.employee_id:
+            self.probation_id.employee_id = self.employee_id.id
+
+    def action_approve(self):
+        """function used for changing the state probation into
+        running when approves a contract"""
+        for contract in self:
+            vals = {'is_approve': True}
+            if contract.state == 'probation':
+                vals.update({'state': 'open', 'is_approve': False})
+            contract.write(vals)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        """function for create a record based on probation
+        details in a model """
+        for vals in vals_list:
+            if vals.get('trial_date_end') and vals.get('state') == 'probation' and vals.get('employee_id'):
+                dtl = self.env['hr.training'].create({
+                    'employee_id': vals['employee_id'],
+                    'start_date': vals.get('contract_date_start') or vals.get('date_start'),
+                    'end_date': vals['trial_date_end'],
+                })
+                vals['probation_id'] = dtl.id
+        return super().create(vals_list)
+
+    def write(self, vals):
+        """function for checking stage changing and creating probation
+        record based on contract stage"""
+        target_state = vals.get('state')
+        for contract in self:
+            if contract.state == 'probation':
+                if target_state == 'open' and not contract.is_approve:
+                    raise UserError(_("You cannot change the status of non-approved Contracts"))
+                if target_state in {'cancel', 'close', 'draft'}:
+                    raise UserError(_("You cannot change the status of non-approved Contracts"))
+        res = super().write(vals)
+        for contract in self:
+            if contract.probation_id or not contract.employee_id:
+                continue
+            if contract.trial_date_end and contract.state == 'probation':
+                training = self.env['hr.training'].create({
+                    'employee_id': contract.employee_id.id,
+                    'start_date': contract.contract_date_start or contract.date_start,
+                    'end_date': contract.trial_date_end,
+                })
+                contract.probation_id = training.id
+        return res
