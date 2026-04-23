@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="action_report_vendor_invoices_payments" model="ir.actions.report">
+        <field name="name">Vendor Invoices &amp; Payments</field>
+        <field name="model">vendor.invoices.payments.report</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">ft_backend.report_vendor_invoices_payments</field>
+        <field name="report_file">ft_backend.report_vendor_invoices_payments</field>
+    </record>
+
+    <template id="report_vendor_invoices_payments">
+        <t t-call="web.html_container">
+            <t t-call="web.basic_layout">
+                <div class="page vip-report-root">
+                    <style>
+                        .vip-report-root {
+                            font-size: 12px;
+                            color: #000;
+                        }
+                        .vip-report-root table {
+                            width: 100%;
+                            border-collapse: collapse;
+                        }
+                        .vip-report-root th,
+                        .vip-report-root td {
+                            border: 1px solid #000;
+                            padding: 2px 4px;
+                            line-height: 1.2;
+                            vertical-align: middle;
+                        }
+                        .vip-report-root .title {
+                            margin: 0 0 3px 0;
+                            font-size: 38px;
+                            font-weight: 700;
+                            text-decoration: underline;
+                        }
+                        .vip-report-root .meta-label {
+                            width: 90px;
+                            font-weight: 700;
+                            font-style: italic;
+                        }
+                        .vip-report-root .head-row th {
+                            background: #95c93d;
+                            font-size: 26px;
+                            font-style: italic;
+                            font-weight: 700;
+                            white-space: nowrap;
+                        }
+                        .vip-report-root .num {
+                            text-align: right;
+                            white-space: nowrap;
+                        }
+                        .vip-report-root .grand-row td {
+                            background: #ffff00;
+                            font-weight: 700;
+                            font-size: 30px;
+                        }
+                    </style>
+
+                    <h2 class="title" t-esc="report_name"/>
+
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td class="meta-label">Period:</td>
+                                <td colspan="8"><span t-esc="period_text"/></td>
+                            </tr>
+                            <tr>
+                                <td class="meta-label">Currency:</td>
+                                <td colspan="8"><span t-esc="currency_text"/></td>
+                            </tr>
+                            <tr class="head-row">
+                                <th>Vendor Name</th>
+                                <th>Trans Type</th>
+                                <th>Reference</th>
+                                <th>Date</th>
+                                <th>Due Date</th>
+                                <th class="num">Payments</th>
+                                <th class="num">Invoices</th>
+                                <th class="num">Allocated</th>
+                                <th class="num">Balance</th>
+                            </tr>
+
+                            <t t-if="not rows">
+                                <tr>
+                                    <td colspan="9">No vendor invoice/payment records in selected period.</td>
+                                </tr>
+                            </t>
+
+                            <t t-foreach="rows" t-as="row">
+                                <tr t-if="row['row_type'] == 'line'">
+                                    <td><span t-esc="row['vendor_name']"/></td>
+                                    <td><span t-esc="row['trans_type']"/></td>
+                                    <td><span t-esc="row['reference']"/></td>
+                                    <td><span t-esc="row['date']"/></td>
+                                    <td><span t-esc="row['due_date']"/></td>
+                                    <td class="num"><span t-esc="'%.2f' % row['payments']"/></td>
+                                    <td class="num"><span t-esc="'%.2f' % row['invoices']"/></td>
+                                    <td class="num"><span t-esc="'%.2f' % row['allocated']"/></td>
+                                    <td class="num"><span t-esc="'%.2f' % row['balance']"/></td>
+                                </tr>
+                            </t>
+
+                            <tr class="grand-row">
+                                <td>Grand Total</td>
+                                <td/>
+                                <td/>
+                                <td/>
+                                <td/>
+                                <td class="num"><span t-esc="'%.2f' % grand_total['payments']"/></td>
+                                <td class="num"><span t-esc="'%.2f' % grand_total['invoices']"/></td>
+                                <td class="num"><span t-esc="'%.2f' % grand_total['allocated']"/></td>
+                                <td class="num"><span t-esc="'%.2f' % grand_total['balance']"/></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
+
+</odoo>

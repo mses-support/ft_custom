@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="base_accounting_kit.action_report_account_tax" model="ir.actions.report">
+        <field name="report_name">ft_backend.report_tax_green</field>
+        <field name="report_file">ft_backend.report_tax_green</field>
+    </record>
+
+    <template id="report_tax_green">
+        <t t-call="web.html_container">
+            <t t-set="data_report_margin_top" t-value="32"/>
+            <t t-set="data_report_header_spacing" t-value="18"/>
+            <t t-set="data_report_dpi" t-value="110"/>
+            <t t-call="web.external_layout">
+                <div class="page tax-detailed-report-root">
+                    <style>
+                        .tax-detailed-report-root {
+                            font-size: 12px;
+                            color: #000;
+                        }
+                        .tax-detailed-report-root .title {
+                            margin: 0 0 4px 0;
+                            font-size: 30px;
+                            font-weight: 700;
+                        }
+                        .tax-detailed-report-root table {
+                            width: 100%;
+                            border-collapse: collapse;
+                        }
+                        .tax-detailed-report-root th,
+                        .tax-detailed-report-root td {
+                            border: 1px solid #000;
+                            padding: 2px 4px;
+                            line-height: 1.25;
+                            vertical-align: middle;
+                        }
+                        .tax-detailed-report-root .meta-label {
+                            width: 90px;
+                            font-weight: 700;
+                            font-style: italic;
+                        }
+                        .tax-detailed-report-root .section-title {
+                            margin: 10px 0 4px 0;
+                            font-size: 34px;
+                            font-weight: 700;
+                        }
+                        .tax-detailed-report-root .num {
+                            text-align: right;
+                            white-space: nowrap;
+                        }
+                        .tax-detailed-report-root .center {
+                            text-align: center;
+                        }
+                        .tax-detailed-report-root .head {
+                            font-style: italic;
+                            font-weight: 700;
+                        }
+                        .tax-detailed-report-root .total-row td {
+                            font-weight: 700;
+                        }
+                    </style>
+
+                    <h2 class="title" t-esc="report_name"/>
+
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td class="meta-label">Period:</td>
+                                <td colspan="7"><span t-esc="period_text"/></td>
+                            </tr>
+                            <tr>
+                                <td class="meta-label">Type:</td>
+                                <td colspan="7"><span t-esc="report_type_text"/></td>
+                            </tr>
+                            <tr class="head">
+                                <td>Trans Type</td>
+                                <td>Ref</td>
+                                <td>Date</td>
+                                <td>Name</td>
+                                <td class="num">Net</td>
+                                <td class="num">Rate</td>
+                                <td class="num">Tax</td>
+                                <td>VAT Type</td>
+                            </tr>
+                            <t t-if="not detail_lines">
+                                <tr>
+                                    <td colspan="8" class="center">No tax entries for selected criteria.</td>
+                                </tr>
+                            </t>
+                            <tr t-foreach="detail_lines" t-as="line">
+                                <td><span t-esc="line['trans_type']"/></td>
+                                <td><span t-esc="line['ref']"/></td>
+                                <td><span t-esc="line['date']"/></td>
+                                <td><span t-esc="line['name']"/></td>
+                                <td class="num"><span t-esc="'%.2f' % line['net']"/></td>
+                                <td class="num"><span t-esc="'%.2f' % line['rate']"/></td>
+                                <td class="num"><span t-esc="'%.2f' % line['tax']"/></td>
+                                <td><span t-esc="line['vat_type']"/></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3 class="section-title">Summary</h3>
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td class="meta-label">Period:</td>
+                                <td colspan="5"><span t-esc="period_text"/></td>
+                            </tr>
+                            <tr>
+                                <td class="meta-label">Type:</td>
+                                <td colspan="5"><span t-esc="report_type_text"/></td>
+                            </tr>
+                            <tr class="head">
+                                <td>Tax Rate</td>
+                                <td class="num">Outputs</td>
+                                <td class="num">Output Tax</td>
+                                <td class="num">Inputs</td>
+                                <td class="num">Input Tax</td>
+                                <td class="num">Net Tax</td>
+                            </tr>
+                            <tr t-foreach="summary_rows" t-as="line">
+                                <td><span t-esc="line['tax_rate']"/></td>
+                                <td class="num"><span t-esc="'%.2f' % line['outputs']"/></td>
+                                <td class="num"><span t-esc="'%.2f' % line['output_tax']"/></td>
+                                <td class="num"><span t-esc="'%.2f' % line['inputs']"/></td>
+                                <td class="num"><span t-esc="'%.2f' % line['input_tax']"/></td>
+                                <td class="num"><span t-esc="'%.2f' % line['net_tax']"/></td>
+                            </tr>
+                            <tr class="total-row">
+                                <td colspan="5" class="center">Total payable or refund</td>
+                                <td class="num"><span t-esc="'%.2f' % total_payable_or_refund"/></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
+
+</odoo>

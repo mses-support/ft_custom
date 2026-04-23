@@ -28,6 +28,18 @@ class ReportGeneralLedger(models.AbstractModel):
     _name = 'report.base_accounting_kit.report_general_ledger'
     _description = 'General Ledger Report'
 
+    def _format_gl_amount(self, amount):
+        """Return currency-formatted text using normal spaces (no NBSP)."""
+        currency = self.env.company.currency_id
+        amount = currency.round(amount or 0.0)
+        precision = currency.decimal_places or 2
+        sign = '-' if amount < 0 else ''
+        number = f"{abs(amount):,.{precision}f}"
+        symbol = currency.symbol or currency.name or ''
+        if currency.position == 'after':
+            return f"{sign}{number} {symbol}".strip()
+        return f"{symbol} {sign}{number}".strip()
+
     def _get_account_move_entry(self, accounts, init_balance, sortby,
                                 display_account):
         """
@@ -188,4 +200,5 @@ class ReportGeneralLedger(models.AbstractModel):
             'print_journal': codes,
             'analytic_accounts': analytic_accounts,
             'analytic_plans': analytic_plans,
+            'format_gl_amount': self._format_gl_amount,
         }

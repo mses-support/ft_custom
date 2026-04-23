@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <template id="report_tax_new">
+        <t t-call="base_accounting_kit.report_tax"/>
+    </template>
+
+    <record id="action_report_account_tax_new" model="ir.actions.report">
+        <field name="name">Tax Report (New)</field>
+        <field name="model">kit.account.tax.report</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">ft_backend.report_tax_new</field>
+        <field name="report_file">ft_backend.report_tax_new</field>
+    </record>
+
+</odoo>

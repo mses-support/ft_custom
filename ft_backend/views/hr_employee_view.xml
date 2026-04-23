@@ -44,20 +44,22 @@
 
             </xpath>
 
-           <xpath expr="//group[@name='citizenship']" position="inside">
+            <xpath expr="//group[@name='citizenship']" position="inside">
 
-    <separator string="Iqama Details"/>
+                <field name="employee_code" readonly="1"/>
 
-    <field name="iqama_number"/>
+                <separator string="Iqama Details"/>
 
-    <label for="iqama_expiry_date"/>
-    <div class="o_wrap_label d-flex flex-row gap-3 align-items-baseline">
-        <field name="iqama_expiry_date"/>
-        <label for="iqama_reminder_days" class="flex-shrink-0" string="Reminder (Days)"/>
-        <field name="iqama_reminder_days" class="o_hr_narrow_field"/>
-    </div>
+                <field name="iqama_number"/>
 
-</xpath>
+                <label for="iqama_expiry_date"/>
+                <div class="o_wrap_label d-flex flex-row gap-3 align-items-baseline">
+                    <field name="iqama_expiry_date"/>
+                    <label for="iqama_reminder_days" class="flex-shrink-0" string="Reminder (Days)"/>
+                    <field name="iqama_reminder_days" class="o_hr_narrow_field"/>
+                </div>
+
+            </xpath>
 
 
         </field>
