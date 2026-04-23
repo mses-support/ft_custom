@@ -101,7 +101,7 @@
                 <div class="apb-head">
                     <div class="apb-head-inner">
                         <div class="apb-head-logo-wrap">
-                            <img t-if="env.company.logo" class="apb-head-logo" t-att-src="image_data_uri(env.company.logo)" alt="Logo"/>
+                            <img t-if="docs.company_id.logo" class="apb-head-logo" t-att-src="image_data_uri(docs.company_id.logo)" alt="Logo"/>
                         </div>
                         <div class="apb-head-title-wrap">
                         <h2 class="apb-title">Aged Partner Balance</h2>
@@ -154,13 +154,13 @@
                         <tbody>
                             <tr t-if="get_partner_lines" class="apb-total-row">
                                 <td>Account Total</td>
-                                <td class="amt-col"><span t-esc="get_direction[6]" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></td>
-                                <td class="amt-col"><span t-esc="get_direction[4]" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></td>
-                                <td class="amt-col"><span t-esc="get_direction[3]" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></td>
-                                <td class="amt-col"><span t-esc="get_direction[2]" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></td>
-                                <td class="amt-col"><span t-esc="get_direction[1]" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></td>
-                                <td class="amt-col"><span t-esc="get_direction[0]" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></td>
-                                <td class="amt-col"><span t-esc="get_direction[5]" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></td>
+                                <td class="amt-col"><span t-esc="get_direction[6]" t-options="{'widget': 'monetary', 'display_currency': docs.company_id.currency_id}"/></td>
+                                <td class="amt-col"><span t-esc="get_direction[4]" t-options="{'widget': 'monetary', 'display_currency': docs.company_id.currency_id}"/></td>
+                                <td class="amt-col"><span t-esc="get_direction[3]" t-options="{'widget': 'monetary', 'display_currency': docs.company_id.currency_id}"/></td>
+                                <td class="amt-col"><span t-esc="get_direction[2]" t-options="{'widget': 'monetary', 'display_currency': docs.company_id.currency_id}"/></td>
+                                <td class="amt-col"><span t-esc="get_direction[1]" t-options="{'widget': 'monetary', 'display_currency': docs.company_id.currency_id}"/></td>
+                                <td class="amt-col"><span t-esc="get_direction[0]" t-options="{'widget': 'monetary', 'display_currency': docs.company_id.currency_id}"/></td>
+                                <td class="amt-col"><span t-esc="get_direction[5]" t-options="{'widget': 'monetary', 'display_currency': docs.company_id.currency_id}"/></td>
                             </tr>
                             <tr t-foreach="get_partner_lines" t-as="partner">
                                 <td class="partner-col">
@@ -168,31 +168,31 @@
                                 </td>
                                 <td class="amt-col">
                                     <span t-esc="partner['direction']"
-                                          t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
+                                          t-options="{'widget': 'monetary', 'display_currency': docs.company_id.currency_id}"/>
                                 </td>
                                 <td class="amt-col">
                                     <span t-esc="partner['4']"
-                                          t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
+                                          t-options="{'widget': 'monetary', 'display_currency': docs.company_id.currency_id}"/>
                                 </td>
                                 <td class="amt-col">
                                     <span t-esc="partner['3']"
-                                          t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
+                                          t-options="{'widget': 'monetary', 'display_currency': docs.company_id.currency_id}"/>
                                 </td>
                                 <td class="amt-col">
                                     <span t-esc="partner['2']"
-                                          t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
+                                          t-options="{'widget': 'monetary', 'display_currency': docs.company_id.currency_id}"/>
                                 </td>
                                 <td class="amt-col">
                                     <span t-esc="partner['1']"
-                                          t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
+                                          t-options="{'widget': 'monetary', 'display_currency': docs.company_id.currency_id}"/>
                                 </td>
                                 <td class="amt-col">
                                     <span t-esc="partner['0']"
-                                          t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
+                                          t-options="{'widget': 'monetary', 'display_currency': docs.company_id.currency_id}"/>
                                 </td>
                                 <td class="amt-col">
                                     <span t-esc="partner['total']"
-                                          t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
+                                          t-options="{'widget': 'monetary', 'display_currency': docs.company_id.currency_id}"/>
                                 </td>
                             </tr>
                         </tbody>

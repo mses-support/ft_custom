@@ -35,6 +35,26 @@
                             font-weight: 700;
                             text-decoration: underline;
                         }
+                        .cip-report-root .header-box {
+                            display: flex;
+                            align-items: center;
+                            justify-content: space-between;
+                            margin-bottom: 8px;
+                            gap: 12px;
+                        }
+                        .cip-report-root .header-logo {
+                            max-height: 60px;
+                            max-width: 220px;
+                        }
+                        .cip-report-root .header-text {
+                            text-align: right;
+                            flex: 1;
+                        }
+                        .cip-report-root .company-name {
+                            font-size: 13px;
+                            font-weight: 700;
+                            margin-top: 2px;
+                        }
                         .cip-report-root .meta-label {
                             width: 90px;
                             font-weight: 700;
@@ -58,7 +78,16 @@
                         }
                     </style>
 
-                    <h2 class="title" t-esc="report_name"/>
+                    <div class="header-box">
+                        <img t-if="company_logo"
+                             class="header-logo"
+                             t-att-src="image_data_uri(company_logo)"
+                             alt="Company Logo"/>
+                        <div class="header-text">
+                            <h2 class="title" t-esc="report_name"/>
+                            <div class="company-name" t-esc="company_name"/>
+                        </div>
+                    </div>
 
                     <table>
                         <tbody>

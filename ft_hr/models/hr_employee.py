@@ -7,15 +7,13 @@ class HrEmployee(models.Model):
     employee_code = fields.Char(
         string="Employee Code",
         copy=False,
-        readonly=True,
-        default="New",
     )
 
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            if not vals.get("employee_code") or vals.get("employee_code") == "New":
+            if not vals.get("employee_code"):
                 vals["employee_code"] = self.env["ir.sequence"].next_by_code(
                     "ft_hr.employee.code"
-                ) or "New"
+                ) or False
         return super().create(vals_list)

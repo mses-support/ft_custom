@@ -71,8 +71,7 @@ class ReportAgedPartnerBalance(models.AbstractModel):
         cr = self.env.cr
         user_company = self.env.company
         user_currency = user_company.currency_id
-        ResCurrency = self.env['res.currency'].with_context(date=date_end_str)
-        company_ids = self._context.get('company_ids') or [user_company.id]
+        company_ids = self.env.context.get('company_ids') or [user_company.id]
         move_state = ['draft', 'posted']
         if target_move == 'posted':
             move_state = ['posted']
@@ -147,21 +146,34 @@ class ReportAgedPartnerBalance(models.AbstractModel):
             partner_id = line.partner_id.id or False
             if partner_id not in undue_amounts:
                 undue_amounts[partner_id] = 0.0
-            line_amount = ResCurrency._get_conversion_rate(line.company_id.currency_id,
-                                               user_currency, line.balance)
+            line_amount = line.company_currency_id._convert(
+                line.balance,
+                user_currency,
+                line.company_id,
+                date_end,
+                round=False,
+            )
             if user_currency.is_zero(line_amount):
                 continue
             for partial_line in line.matched_debit_ids:
                 if partial_line.max_date <= date_end:
-                    line_amount += ResCurrency._get_conversion_rate(
-                        partial_line.company_id.currency_id, user_currency,
-                        partial_line.amount)
+                    line_amount += partial_line.company_currency_id._convert(
+                        partial_line.amount,
+                        user_currency,
+                        partial_line.company_id,
+                        date_end,
+                        round=False,
+                    )
             for partial_line in line.matched_credit_ids:
                 if partial_line.max_date <= date_end:
-                    line_amount -= ResCurrency._get_conversion_rate(
-                        partial_line.company_id.currency_id, user_currency,
-                        partial_line.amount)
-            if not self.env.company.currency_id.is_zero(line_amount):
+                    line_amount -= partial_line.company_currency_id._convert(
+                        partial_line.amount,
+                        user_currency,
+                        partial_line.company_id,
+                        date_end,
+                        round=False,
+                    )
+            if not user_currency.is_zero(line_amount):
                 undue_amounts[partner_id] += line_amount
                 lines[partner_id].append({
                     'line': line,
@@ -205,23 +217,35 @@ class ReportAgedPartnerBalance(models.AbstractModel):
                 partner_id = line.partner_id.id or False
                 if partner_id not in partners_amount:
                     partners_amount[partner_id] = 0.0
-                line_amount = ResCurrency._get_conversion_rate(line.company_id.currency_id,
-                                                   user_currency, line.balance)
+                line_amount = line.company_currency_id._convert(
+                    line.balance,
+                    user_currency,
+                    line.company_id,
+                    date_end,
+                    round=False,
+                )
                 if user_currency.is_zero(line_amount):
                     continue
                 for partial_line in line.matched_debit_ids:
                     if partial_line.max_date <= date_end:
-                        line_amount += ResCurrency._get_conversion_rate(
-                            partial_line.company_id.currency_id, user_currency,
-                            partial_line.amount)
+                        line_amount += partial_line.company_currency_id._convert(
+                            partial_line.amount,
+                            user_currency,
+                            partial_line.company_id,
+                            date_end,
+                            round=False,
+                        )
                 for partial_line in line.matched_credit_ids:
                     if partial_line.max_date <= date_end:
-                        line_amount -= ResCurrency._get_conversion_rate(
-                            partial_line.company_id.currency_id, user_currency,
-                            partial_line.amount)
+                        line_amount -= partial_line.company_currency_id._convert(
+                            partial_line.amount,
+                            user_currency,
+                            partial_line.company_id,
+                            date_end,
+                            round=False,
+                        )
 
-                if not self.env.company.currency_id.is_zero(
-                        line_amount):
+                if not user_currency.is_zero(line_amount):
                     partners_amount[partner_id] += line_amount
                     lines[partner_id].append({
                         'line': line,
@@ -242,7 +266,7 @@ class ReportAgedPartnerBalance(models.AbstractModel):
             total[6] = total[6] + undue_amt
             values['direction'] = undue_amt
             if not float_is_zero(values['direction'],
-                                 precision_rounding=self.env.company.currency_id.rounding):
+                                 precision_rounding=user_currency.rounding):
                 at_least_one_amount = True
 
             for i in range(5):
@@ -253,7 +277,7 @@ class ReportAgedPartnerBalance(models.AbstractModel):
                 total[(i)] = total[(i)] + (during and during[0] or 0)
                 values[str(i)] = during and during[0] or 0.0
                 if not float_is_zero(values[str(i)],
-                                     precision_rounding=self.env.company.currency_id.rounding):
+                                     precision_rounding=user_currency.rounding):
                     at_least_one_amount = True
             values['total'] = sum(
                 [values['direction']] + [values[str(i)] for i in range(5)])
@@ -272,7 +296,7 @@ class ReportAgedPartnerBalance(models.AbstractModel):
                 values['trust'] = False
 
             if at_least_one_amount or (
-                    self._context.get('include_nullified_amount') and lines[
+                    self.env.context.get('include_nullified_amount') and lines[
                 partner['partner_id']]):
                 res.append(values)
         return res, total, lines

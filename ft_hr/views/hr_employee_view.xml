@@ -5,8 +5,10 @@
         <field name="model">hr.employee</field>
         <field name="inherit_id" ref="hr.view_employee_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//group[@name='citizenship']" position="inside">
-                <field name="employee_code" readonly="1"/>
+            <xpath expr="//h1/field[@name='name']" position="after">
+                <span class="ms-2 d-inline-flex align-items-center">
+                    <field name="employee_code" placeholder="Employee Code"/>
+                </span>
             </xpath>
         </field>
     </record>

@@ -16,6 +16,7 @@
                 </group>
                 <footer>
                     <button name="action_print" string="Print" type="object" class="oe_highlight"/>
+                    <button name="check_report_xlsx" string="Download Excel" type="object" class="btn btn-secondary"/>
                     <button string="Cancel" class="btn btn-secondary" special="cancel"/>
                 </footer>
             </form>

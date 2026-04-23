@@ -21,6 +21,11 @@ class ReportCustomerInvoicesPayments(models.AbstractModel):
         return value
 
     @api.model
+    def _get_company(self, options):
+        company_id = self._as_id(options.get("company_id")) or self.env.company.id
+        return self.env["res.company"].browse(company_id)
+
+    @api.model
     def _invoice_domain(self, options):
         domain = [
             ("company_id", "=", self._as_id(options.get("company_id")) or self.env.company.id),
@@ -156,15 +161,18 @@ class ReportCustomerInvoicesPayments(models.AbstractModel):
             raise UserError("Form content is missing, this report cannot be printed.")
 
         form = data["form"]
+        company = self._get_company(form)
         rows, grand = self._build_rows(form)
         return {
             "data": form,
             "report_name": "Customer Invoices & Payments",
+            "company_name": company.name or "",
+            "company_logo": company.logo,
             "period_text": f"{self._to_date_string(form.get('date_from'))} - {self._to_date_string(form.get('date_to'))}",
             "currency_text": (
                 form["currency_id"][1]
                 if isinstance(form.get("currency_id"), (list, tuple)) and len(form["currency_id"]) > 1
-                else self.env.company.currency_id.name
+                else company.currency_id.name
             ),
             "rows": rows,
             "grand_total": grand,
