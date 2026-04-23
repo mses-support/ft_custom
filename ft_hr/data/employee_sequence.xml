@@ -3,7 +3,7 @@
     <data noupdate="1">
         <record id="seq_employee_code" model="ir.sequence">
             <field name="name">Employee Code</field>
-            <field name="code">ft_backend.employee.code</field>
+            <field name="code">ft_hr.employee.code</field>
             <field name="prefix">EMP/</field>
             <field name="padding">5</field>
             <field name="number_increment">1</field>

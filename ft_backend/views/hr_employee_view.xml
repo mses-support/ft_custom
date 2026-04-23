@@ -45,9 +45,6 @@
             </xpath>
 
             <xpath expr="//group[@name='citizenship']" position="inside">
-
-                <field name="employee_code" readonly="1"/>
-
                 <separator string="Iqama Details"/>
 
                 <field name="iqama_number"/>

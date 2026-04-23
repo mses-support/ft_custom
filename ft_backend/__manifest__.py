@@ -5,7 +5,6 @@
     "data": [
         "security/ir.model.access.csv",
         "security/security.xml",
-        "data/employee_sequence.xml",
         'data/email_template.xml',
         'data/ir_cron.xml',
         "views/report_action.xml",
