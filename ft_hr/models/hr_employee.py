@@ -9,11 +9,11 @@ class HrEmployee(models.Model):
         copy=False,
     )
 
-    @api.model_create_multi
-    def create(self, vals_list):
-        for vals in vals_list:
-            if not vals.get("employee_code"):
-                vals["employee_code"] = self.env["ir.sequence"].next_by_code(
-                    "ft_hr.employee.code"
-                ) or False
-        return super().create(vals_list)
+    @api.model
+    def _cleanup_legacy_employee_code_values(self):
+        legacy_employees = self.with_context(active_test=False).search(
+            [("employee_code", "=", "New")]
+        )
+        if legacy_employees:
+            legacy_employees.write({"employee_code": False})
+        return True
