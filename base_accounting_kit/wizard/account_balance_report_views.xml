@@ -11,6 +11,13 @@
                 <field name="display_account" widget="radio"/>
                 <newline/>
             </xpath>
+            <xpath expr="//footer" position="replace">
+                <footer>
+                    <button name="check_report" string="Print" type="object" default_focus="1" class="oe_highlight"/>
+                    <button name="check_report_xlsx" string="Download Excel" type="object" class="btn btn-secondary"/>
+                    <button string="Cancel" class="btn btn-secondary" special="cancel"/>
+                </footer>
+            </xpath>
         </field>
     </record>
 <!--Action Account Balance Report-->

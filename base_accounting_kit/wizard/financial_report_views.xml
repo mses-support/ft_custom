@@ -22,6 +22,8 @@
                 <footer>
                     <button string="Print" name="view_report_pdf" type="object"
                             class="btn-primary"/>
+                    <button string="Download Excel" name="check_report_xlsx" type="object"
+                            class="btn btn-secondary"/>
                     <button string="Discard" class="btn-secondary"
                             special="cancel"/>
                 </footer>

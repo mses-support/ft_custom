@@ -58,59 +58,94 @@ class ReportFinancial(models.AbstractModel):
                 res[row['id']] = row
         return res
 
+    def _get_cash_flow_split_report_ids(self):
+        """Return report ids that should show debit-only or credit-only flow."""
+        cash_in_xml_ids = (
+            'base_accounting_kit.cash_in_from_operation0',
+            'base_accounting_kit.cash_in_financial0',
+            'base_accounting_kit.cash_in_investing0',
+        )
+        cash_out_xml_ids = (
+            'base_accounting_kit.cash_out_operation1',
+            'base_accounting_kit.cash_out_financial1',
+            'base_accounting_kit.cash_out_investing1',
+        )
+        cash_in_ids = {
+            rec.id for rec in (
+                self.env.ref(xml_id, raise_if_not_found=False)
+                for xml_id in cash_in_xml_ids
+            ) if rec
+        }
+        cash_out_ids = {
+            rec.id for rec in (
+                self.env.ref(xml_id, raise_if_not_found=False)
+                for xml_id in cash_out_xml_ids
+            ) if rec
+        }
+        return cash_in_ids, cash_out_ids
+
     def _compute_report_balance(self, reports):
         res = {}
         fields = ['credit', 'debit', 'balance']
+        cash_in_ids, cash_out_ids = self._get_cash_flow_split_report_ids()
         for report in reports:
             if report.id in res:
                 continue
             res[report.id] = dict((fn, 0.0) for fn in fields)
             if report.type == 'accounts':
-                # it's the sum of credit or debit
-                res2 = self._compute_report_balance(report.parent_id)
-                for key, value in res2.items():
-                    cash_in_operation = self.env.ref(
-                        'base_accounting_kit.cash_in_from_operation0')
-                    cash_out_operation = self.env.ref(
-                        'base_accounting_kit.cash_out_operation1')
-                    cash_in_financial = self.env.ref(
-                        'base_accounting_kit.cash_in_financial0')
-                    cash_out_financial = self.env.ref(
-                        'base_accounting_kit.cash_out_financial1')
-                    cash_in_investing = self.env.ref(
-                        'base_accounting_kit.cash_in_investing0')
-                    cash_out_investing = self.env.ref(
-                        'base_accounting_kit.cash_out_investing1')
-                    if report == cash_in_operation or report == cash_in_financial or report == cash_in_investing:
-                        res[report.id]['debit'] += value['debit']
-                        res[report.id]['balance'] += value['debit']
-                    elif report == cash_out_operation or report == cash_out_financial or report == cash_out_investing:
-                        res[report.id]['credit'] += value['credit']
-                        res[report.id]['balance'] += -(value['credit'])
+                # Use direct accounts, or section accounts for cash in/out split
+                account_ids = report.account_ids
+                if not account_ids and report.id in (cash_in_ids | cash_out_ids):
+                    account_ids = report.parent_id.account_ids
+                res[report.id]['account'] = self._compute_account_balance(
+                    account_ids)
+                for value in res[report.id]['account'].values():
+                    if report.id in cash_in_ids:
+                        debit_value = value.get('debit', 0.0)
+                        res[report.id]['debit'] += debit_value
+                        res[report.id]['balance'] += debit_value
+                        value['credit'] = 0.0
+                        value['balance'] = debit_value
+                    elif report.id in cash_out_ids:
+                        credit_value = value.get('credit', 0.0)
+                        res[report.id]['credit'] += credit_value
+                        res[report.id]['balance'] -= credit_value
+                        value['debit'] = 0.0
+                        value['balance'] = -credit_value
+                    else:
+                        for field in fields:
+                            res[report.id][field] += value.get(field, 0.0)
             elif report.type == 'account_type':
                 # it's the sum the leaf accounts with such an account type
-                accounts = self.env['account.account'].search(
-                    [('account_type', 'in', report.account_type_ids)])
+                accounts = self.env['account.account']
+                if report.account_type_ids:
+                    accounts = self.env['account.account'].search(
+                        [('account_type', '=', report.account_type_ids)])
                 res[report.id]['account'] = self._compute_account_balance(
                     accounts)
                 for value in res[report.id]['account'].values():
                     for field in fields:
                         res[report.id][field] += value.get(field)
             elif report.type == 'account_report' and report.account_report_id:
-                # it's the amount of the linked
-                res[report.id]['account'] = self._compute_account_balance(
-                    report.account_ids)
-                for value in res[report.id]['account'].values():
+                # it's the amount of the linked report
+                res2 = self._compute_report_balance(report.account_report_id)
+                for value in res2.values():
                     for field in fields:
                         res[report.id][field] += value.get(field)
 
             elif report.type == 'sum':
-                # it's the sum of the linked accounts
-                res[report.id]['account'] = self._compute_account_balance(
-                    report.account_ids)
-                for values in res[report.id]['account'].values():
-                    for field in fields:
-                        res[report.id][field] += values.get(field)
+                # it's the sum of children; if no child, fallback to linked accounts
+                if report.children_ids:
+                    res2 = self._compute_report_balance(report.children_ids)
+                    for value in res2.values():
+                        for field in fields:
+                            res[report.id][field] += value.get(field)
+                elif report.account_ids:
+                    res[report.id]['account'] = self._compute_account_balance(
+                        report.account_ids)
+                    for value in res[report.id]['account'].values():
+                        for field in fields:
+                            res[report.id][field] += value.get(field)
         return res
 
     def get_account_lines(self, data):
@@ -157,6 +192,7 @@ class ReportFinancial(models.AbstractModel):
             if res[report.id].get('account'):
                 # if res[report.id].get('debit'):
                 sub_lines = []
+                company_currency = self.env.company.currency_id
                 for account_id, value in res[report.id]['account'].items():
                     # if there are accounts to display, we add them to the
                     # lines with a level equals to their level in
@@ -170,23 +206,23 @@ class ReportFinancial(models.AbstractModel):
                         'balance': value['balance'] * int(report.sign) or 0.0,
                         'type': 'account',
                         'level': report.display_detail == 'detail_with_hierarchy' and 4,
-                        'account_type': account.internal_type,
+                        'account_type': account.account_type,
                     }
                     if data['debit_credit']:
                         vals['debit'] = value['debit']
                         vals['credit'] = value['credit']
-                        if not account.company_id.currency_id.is_zero(
+                        if not company_currency.is_zero(
                                 vals[
-                                    'debit']) or not account.company_id.currency_id.is_zero(
+                                    'debit']) or not company_currency.is_zero(
                             vals['credit']):
                             flag = True
-                    if not account.company_id.currency_id.is_zero(
+                    if not company_currency.is_zero(
                             vals['balance']):
                         flag = True
                     if data['enable_filter']:
                         vals['balance_cmp'] = value['comp_bal'] * int(
                             report.sign)
-                        if not account.company_id.currency_id.is_zero(
+                        if not company_currency.is_zero(
                                 vals['balance_cmp']):
                             flag = True
                     if flag:

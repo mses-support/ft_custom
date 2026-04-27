@@ -171,7 +171,6 @@ class PurchaseRequestLine(models.Model):
         domain=[("purchase_ok", "=", True)],
         tracking=True,
     )
-
     @api.depends(
         "purchase_request_allocation_ids",
         "purchase_request_allocation_ids.stock_move_id.state",

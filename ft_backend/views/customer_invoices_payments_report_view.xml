@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_customer_invoices_payments_report_form" model="ir.ui.view">
+        <field name="name">customer.invoices.payments.report.form</field>
+        <field name="model">customer.invoices.payments.report</field>
+        <field name="arch" type="xml">
+            <form string="Customer Invoices &amp; Payments">
+                <group col="4">
+                    <field name="company_id"/>
+                    <field name="currency_id"/>
+                    <field name="target_move"/>
+                    <field name="partner_ids" widget="many2many_tags"/>
+                    <field name="date_from"/>
+                    <field name="date_to"/>
+                </group>
+                <footer>
+                    <button name="action_print" string="Print" type="object" class="oe_highlight"/>
+                    <button name="check_report_xlsx" string="Download Excel" type="object" class="btn btn-secondary"/>
+                    <button string="Cancel" class="btn btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_customer_invoices_payments_report_wizard" model="ir.actions.act_window">
+        <field name="name">Customer Invoices &amp; Payments</field>
+        <field name="res_model">customer.invoices.payments.report</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_customer_invoices_payments_report_form"/>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_customer_invoices_payments_report"
+              name="Customer Invoices &amp; Payments"
+              sequence="40"
+              action="action_customer_invoices_payments_report_wizard"
+              parent="base_accounting_kit.account_reports_partner"
+              groups="base_accounting_kit.group_account_chief,account.group_account_user"/>
+
+</odoo>

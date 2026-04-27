@@ -19,10 +19,13 @@
 #    If not, see <http://www.gnu.org/licenses/>.
 #
 #############################################################################
+import json
 from odoo import api, fields, models
+from odoo.tools.json import json_default
+from .xlsx_mixin import ReportXlsxMixin
 
 
-class AccountingReport(models.TransientModel):
+class AccountingReport(models.TransientModel, ReportXlsxMixin):
     _name = "cash.flow.report"
     _inherit = "account.report"
     _description = "Cash Flow Report"
@@ -126,3 +129,82 @@ class AccountingReport(models.TransientModel):
             'base_accounting_kit.action_report_cash_flow').report_action(self,
                                                                          data=data,
                                                                          config=False)
+
+    def check_report_xlsx(self):
+        self.ensure_one()
+        data = {}
+        data['ids'] = self.env.context.get('active_ids', [])
+        data['model'] = self.env.context.get('active_model', 'ir.ui.menu')
+        data['form'] = self.read(
+            ['date_from', 'date_to', 'journal_ids', 'target_move', 'company_id'])[0]
+        used_context = self._build_contexts(data)
+        data['form']['used_context'] = dict(used_context, lang=self.env.context.get('lang') or 'en_US')
+        data['form'].update(self.read(
+            ['date_from_cmp', 'debit_credit', 'date_to_cmp', 'filter_cmp',
+             'account_report_id', 'enable_filter', 'label_filter', 'target_move'])[0])
+        comparison_context = self._build_comparison_context({'form': data['form']})
+        data['form']['comparison_context'] = comparison_context
+        report_lines = self.env[
+            'report.base_accounting_kit.report_cash_flow'].get_account_lines(data['form'])
+        options = {
+            'company_name': self.company_id.name,
+            'company_logo': self.company_id.logo,
+            'report_name': data['form']['account_report_id'][1],
+            'target_move': data['form'].get('target_move'),
+            'date_from': data['form'].get('date_from'),
+            'date_to': data['form'].get('date_to'),
+            'debit_credit': data['form'].get('debit_credit'),
+            'enable_filter': data['form'].get('enable_filter'),
+            'label_filter': data['form'].get('label_filter'),
+            'report_lines': report_lines,
+        }
+        return {
+            'type': 'ir.actions.report',
+            'data': {
+                'model': 'cash.flow.report',
+                'options': json.dumps(options, default=json_default),
+                'output_format': 'xlsx',
+                'report_name': 'Cash Flow Statement',
+            },
+            'report_type': 'xlsx',
+        }
+
+    def get_xlsx_report(self, data, response):
+        headers = ['Name']
+        if data.get('debit_credit'):
+            headers.extend(['Debit', 'Credit'])
+        headers.append('Balance')
+        if data.get('enable_filter'):
+            headers.append(data.get('label_filter') or 'Comparison')
+        rows = []
+        for line in data.get('report_lines', []):
+            if line.get('level') == 0:
+                continue
+            name = '%s%s' % ('  ' * int(line.get('level', 0)), line.get('name', ''))
+            vals = [name]
+            if data.get('debit_credit'):
+                vals.extend([
+                    float(line.get('debit', 0.0)),
+                    float(line.get('credit', 0.0)),
+                ])
+            vals.append(float(line.get('balance', 0.0)))
+            if data.get('enable_filter'):
+                vals.append(float(line.get('balance_cmp', 0.0)))
+            rows.append({
+                'type': 'section' if int(line.get('level', 0)) <= 3 else 'data',
+                'values': vals,
+            })
+        table = {
+            'sheet_name': 'Cash Flow',
+            'title': f"{data.get('company_name', '')}: {data.get('report_name', 'Cash Flow Statement')}",
+            'company_logo': data.get('company_logo'),
+            'meta': [
+                ('Target Moves:', 'All Entries' if data.get('target_move') == 'all' else 'All Posted Entries'),
+                ('Date From:', data.get('date_from') or ''),
+                ('Date To:', data.get('date_to') or ''),
+            ],
+            'headers': headers,
+            'column_widths': [(0, 0, 44), (1, 5, 18)],
+            'rows': rows,
+        }
+        self._render_xlsx_table(table, response)

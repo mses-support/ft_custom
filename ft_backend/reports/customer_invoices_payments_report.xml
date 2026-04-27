@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="action_report_customer_invoices_payments" model="ir.actions.report">
+        <field name="name">Customer Invoices &amp; Payments</field>
+        <field name="model">customer.invoices.payments.report</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">ft_backend.report_customer_invoices_payments</field>
+        <field name="report_file">ft_backend.report_customer_invoices_payments</field>
+    </record>
+
+    <template id="report_customer_invoices_payments">
+        <t t-call="web.html_container">
+            <t t-call="web.basic_layout">
+                <div class="page cip-report-root">
+                    <style>
+                        .cip-report-root {
+                            font-size: 12px;
+                            color: #000;
+                        }
+                        .cip-report-root table {
+                            width: 100%;
+                            border-collapse: collapse;
+                        }
+                        .cip-report-root th,
+                        .cip-report-root td {
+                            border: 1px solid #000;
+                            padding: 2px 4px;
+                            line-height: 1.2;
+                            vertical-align: middle;
+                        }
+                        .cip-report-root .title {
+                            margin: 0 0 3px 0;
+                            font-size: 38px;
+                            font-weight: 700;
+                            text-decoration: underline;
+                        }
+                        .cip-report-root .header-box {
+                            display: flex;
+                            align-items: center;
+                            justify-content: space-between;
+                            margin-bottom: 8px;
+                            gap: 12px;
+                        }
+                        .cip-report-root .header-logo {
+                            max-height: 60px;
+                            max-width: 220px;
+                        }
+                        .cip-report-root .header-text {
+                            text-align: right;
+                            flex: 1;
+                        }
+                        .cip-report-root .company-name {
+                            font-size: 13px;
+                            font-weight: 700;
+                            margin-top: 2px;
+                        }
+                        .cip-report-root .meta-label {
+                            width: 90px;
+                            font-weight: 700;
+                            font-style: italic;
+                        }
+                        .cip-report-root .head-row th {
+                            background: #95c93d;
+                            font-size: 26px;
+                            font-style: italic;
+                            font-weight: 700;
+                            white-space: nowrap;
+                        }
+                        .cip-report-root .num {
+                            text-align: right;
+                            white-space: nowrap;
+                        }
+                        .cip-report-root .grand-row td {
+                            background: #ffff00;
+                            font-weight: 700;
+                            font-size: 30px;
+                        }
+                    </style>
+
+                    <div class="header-box">
+                        <img t-if="company_logo"
+                             class="header-logo"
+                             t-att-src="image_data_uri(company_logo)"
+                             alt="Company Logo"/>
+                        <div class="header-text">
+                            <h2 class="title" t-esc="report_name"/>
+                            <div class="company-name" t-esc="company_name"/>
+                        </div>
+                    </div>
+
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td class="meta-label">Period:</td>
+                                <td colspan="8"><span t-esc="period_text"/></td>
+                            </tr>
+                            <tr>
+                                <td class="meta-label">Currency:</td>
+                                <td colspan="8"><span t-esc="currency_text"/></td>
+                            </tr>
+                            <tr class="head-row">
+                                <th>Customer Name</th>
+                                <th>Trans Type</th>
+                                <th>Reference</th>
+                                <th>Date</th>
+                                <th>Due Date</th>
+                                <th class="num">Invoice</th>
+                                <th class="num">Receipt</th>
+                                <th class="num">Allocated</th>
+                                <th class="num">Balance</th>
+                            </tr>
+
+                            <t t-if="not rows">
+                                <tr>
+                                    <td colspan="9">No customer invoice/payment records in selected period.</td>
+                                </tr>
+                            </t>
+
+                            <t t-foreach="rows" t-as="row">
+                                <tr t-if="row['row_type'] == 'line'">
+                                    <td><span t-esc="row['customer_name']"/></td>
+                                    <td><span t-esc="row['trans_type']"/></td>
+                                    <td><span t-esc="row['reference']"/></td>
+                                    <td><span t-esc="row['date']"/></td>
+                                    <td><span t-esc="row['due_date']"/></td>
+                                    <td class="num"><span t-esc="'%.2f' % row['invoice']"/></td>
+                                    <td class="num"><span t-esc="'%.2f' % row['receipt']"/></td>
+                                    <td class="num"><span t-esc="'%.2f' % row['allocated']"/></td>
+                                    <td class="num"><span t-esc="'%.2f' % row['balance']"/></td>
+                                </tr>
+                            </t>
+
+                            <tr class="grand-row">
+                                <td>Grand Total</td>
+                                <td/>
+                                <td/>
+                                <td/>
+                                <td/>
+                                <td class="num"><span t-esc="'%.2f' % grand_total['invoice']"/></td>
+                                <td class="num"><span t-esc="'%.2f' % grand_total['receipt']"/></td>
+                                <td class="num"><span t-esc="'%.2f' % grand_total['allocated']"/></td>
+                                <td class="num"><span t-esc="'%.2f' % grand_total['balance']"/></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
+
+</odoo>

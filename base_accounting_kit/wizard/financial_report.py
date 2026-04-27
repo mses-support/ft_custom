@@ -20,10 +20,13 @@
 #
 #############################################################################
 import re
+import json
 from odoo import api, models, fields
+from odoo.tools.json import json_default
+from .xlsx_mixin import ReportXlsxMixin
 
 
-class FinancialReport(models.TransientModel):
+class FinancialReport(models.TransientModel, ReportXlsxMixin):
     _name = "financial.report"
     _inherit = "account.report"
     _description = "Financial Reports"
@@ -149,6 +152,81 @@ class FinancialReport(models.TransientModel):
         return self.env.ref(
             'base_accounting_kit.financial_report_pdf').report_action(self,
                                                                       data)
+
+    def check_report_xlsx(self):
+        self.ensure_one()
+        data = dict()
+        data['ids'] = self.env.context.get('active_ids', [])
+        data['model'] = self.env.context.get('active_model', 'ir.ui.menu')
+        data['form'] = self.read(
+            ['date_from', 'enable_filter', 'debit_credit', 'date_to',
+             'account_report_id', 'target_move', 'view_format',
+             'company_id'])[0]
+        used_context = self._build_contexts(data)
+        data['form']['used_context'] = dict(
+            used_context, lang=self.env.context.get('lang') or 'en_US')
+        report_lines = self.get_account_lines(data['form'])
+        options = {
+            'company_name': self.company_id.name,
+            'company_logo': self.company_id.logo,
+            'report_name': data['form']['account_report_id'][1],
+            'target_move': data['form'].get('target_move'),
+            'date_from': data['form'].get('date_from'),
+            'date_to': data['form'].get('date_to'),
+            'debit_credit': data['form'].get('debit_credit'),
+            'enable_filter': data['form'].get('enable_filter'),
+            'report_lines': report_lines,
+        }
+        return {
+            'type': 'ir.actions.report',
+            'data': {
+                'model': 'financial.report',
+                'options': json.dumps(options, default=json_default),
+                'output_format': 'xlsx',
+                'report_name': data['form']['account_report_id'][1],
+            },
+            'report_type': 'xlsx',
+        }
+
+    def get_xlsx_report(self, data, response):
+        headers = ['Name']
+        if data.get('debit_credit'):
+            headers.extend(['Debit', 'Credit'])
+        headers.append('Balance')
+        if data.get('enable_filter'):
+            headers.append('Comp')
+        rows = []
+        for line in data.get('report_lines', []):
+            if line.get('level') == 0:
+                continue
+            name = '%s%s' % ('  ' * int(line.get('level', 0)), line.get('name', ''))
+            vals = [name]
+            if data.get('debit_credit'):
+                vals.extend([
+                    float(line.get('debit', 0.0)),
+                    float(line.get('credit', 0.0)),
+                ])
+            vals.append(float(line.get('balance', 0.0)))
+            if data.get('enable_filter'):
+                vals.append(float(line.get('balance_cmp', 0.0)))
+            rows.append({
+                'type': 'section' if int(line.get('level', 0)) <= 3 else 'data',
+                'values': vals,
+            })
+        table = {
+            'sheet_name': 'Financial Report',
+            'title': f"{data.get('company_name', '')}: {data.get('report_name', 'Financial Report')}",
+            'company_logo': data.get('company_logo'),
+            'meta': [
+                ('Target Moves:', 'All Entries' if data.get('target_move') == 'all' else 'All Posted Entries'),
+                ('Date From:', data.get('date_from') or ''),
+                ('Date To:', data.get('date_to') or ''),
+            ],
+            'headers': headers,
+            'column_widths': [(0, 0, 44), (1, 5, 18)],
+            'rows': rows,
+        }
+        self._render_xlsx_table(table, response)
 
     def _compute_account_balance(self, accounts):
         """ compute the balance, debit
@@ -359,7 +437,109 @@ class FinancialReport(models.TransientModel):
                         sub_lines.append(vals)
                 lines += sorted(sub_lines,
                                 key=lambda sub_line: sub_line['name'])
+        if (account_report.name or '').strip().lower() == 'balance sheet':
+            lines = self._reorder_balance_sheet_lines(lines)
         return lines
+
+    def _reorder_balance_sheet_lines(self, lines):
+        """Keep hierarchy and force Balance Sheet sequence as required."""
+        id_to_line = {
+            line.get('id') or line.get('a_id'): line
+            for line in lines
+            if line.get('id') or line.get('a_id')
+        }
+        children = {}
+        roots = []
+        for line in lines:
+            key = line.get('id') or line.get('a_id')
+            parent = line.get('parent')
+            if parent:
+                children.setdefault(parent, []).append(key)
+            else:
+                roots.append(key)
+
+        def top_group_priority(line_name):
+            name = (line_name or '').strip().lower()
+            if 'asset' in name:
+                return 0
+            if 'liabilit' in name:
+                return 1
+            if 'equity' in name:
+                return 2
+            return 9
+
+        name_order = {
+            # Assets
+            'non-current assets': 0,
+            'property, plant, equipment': 1,
+            'intangible assets': 2,
+            'investment property': 3,
+            'long term investments': 4,
+            'long term deposits': 5,
+            'biological assets': 6,
+            'investment in associates': 7,
+            'investment in jointly controlled entities': 8,
+            'other financial assets': 9,
+            'current assets': 10,
+            'trade receivable': 11,
+            'loans and advances': 12,
+            'trade deposits and short term prepayments': 13,
+            'inventories': 14,
+            'cash and cash equivalents': 15,
+            'other current assets': 16,
+            # Liabilities
+            'non-current liabilities': 17,
+            'long term financing': 18,
+            'deferred liabilities': 19,
+            'current liabilities': 20,
+            'trade and payables': 21,
+            'short term borrowings': 22,
+            'provisions': 23,
+            'unpaid dividend': 24,
+            'unclaimed dividend': 25,
+            'other current liabilities': 26,
+            # Equity
+            'share capital': 27,
+            'unappropriated profit': 28,
+            'reserves': 29,
+            'revaluation surplus on property and equipment': 30,
+            'contingencies and commitments': 31,
+        }
+
+        def sibling_priority(line):
+            line_name = (line.get('name') or '').strip().lower()
+            return name_order.get(line_name, 9999), line.get('sequence', 0), line_name
+
+        ordered = []
+
+        def emit(node_key):
+            line = id_to_line.get(node_key)
+            if not line:
+                return
+            ordered.append(line)
+            child_keys = children.get(node_key, [])
+            line_level = int(line.get('level') or 0)
+            if line_level == 1:
+                # Root children: Assets, Liabilities, Equity
+                child_keys = sorted(
+                    child_keys,
+                    key=lambda k: (
+                        top_group_priority(id_to_line.get(k, {}).get('name')),
+                        id_to_line.get(k, {}).get('sequence', 0),
+                    ),
+                )
+            else:
+                # Inside each group, enforce demo order by line name.
+                child_keys = sorted(
+                    child_keys,
+                    key=lambda k: sibling_priority(id_to_line.get(k, {})),
+                )
+            for child_key in child_keys:
+                emit(child_key)
+
+        for root in roots:
+            emit(root)
+        return ordered
 
     def find_journal_items(self, report_lines, form):
         cr = self.env.cr

@@ -12,6 +12,15 @@
                 <filter string="Draft" name="draft"
                         domain="[('state','=','draft')]"
                         help="Draft Payslip Batches"/>
+                <filter string="HR" name="hr_approval"
+                        domain="[('state','=','hr_approval')]"
+                        help="HR Approved Payslip Batches"/>
+                <filter string="Management Approval" name="management_approval"
+                        domain="[('state','=','management_approval')]"
+                        help="Management Approved Payslip Batches"/>
+                <filter string="Final Approval" name="final_approval"
+                        domain="[('state','=','final_approval')]"
+                        help="Final Approved Payslip Batches"/>
                 <filter name="done_filter" string="Done"
                         domain="[('state','=','close')]"
                         help="Done Payslip Batches"/>
@@ -78,15 +87,31 @@
         <field name="arch" type="xml">
             <form string="Payslips Batches">
                 <header>
+                    <button name="action_set_hr_approval" type="object"
+                            string="HR"
+                            groups="hr_payroll_community.group_hr_payslip_batch_hr_approver"
+                            invisible="state != 'draft'"/>
+                    <button name="action_set_management_approval" type="object"
+                            string="Management Approval"
+                            groups="hr_payroll_community.group_hr_payslip_batch_management_approver"
+                            invisible="state != 'hr_approval'"/>
+                    <button name="action_set_final_approval" type="object"
+                            string="Final Approval"
+                            groups="hr_payroll_community.group_hr_payslip_batch_final_approver"
+                            invisible="state != 'management_approval'"
+                            class="oe_highlight"/>
                     <button name="close_payslip_run" type="object"
-                            string="Close" invisible="state != 'draft'"
+                            string="Close"
+                            groups="hr_payroll_community.group_hr_payslip_batch_final_approver"
+                            invisible="state != 'final_approval'"
                             class="oe_highlight"/>
                     <button name="%(hr_payslip_by_employees_action)d"
-                            type="action" invisible="state != 'draft'"
+                            type="action" invisible="state == 'close'"
                             string="Generate Payslips" class="oe_highlight"/>
                     <button string="Set to Draft" name="action_payslip_run"
                             type="object" invisible="state != 'close'"/>
-                    <field name="state" widget="statusbar"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,hr_approval,management_approval,final_approval,close"/>
                 </header>
                 <sheet>
                     <label for="name" class="oe_edit_only"/>

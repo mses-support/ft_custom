@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <function model="hr.employee" name="_cleanup_legacy_employee_code_values"/>
+</odoo>

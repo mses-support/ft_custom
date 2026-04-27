@@ -2,12 +2,74 @@
 <odoo>
     <template id="report_partnerledger">
         <t t-call="web.html_container">
-            <t t-call="web.internal_layout">
-                <t t-set="data_report_margin_top" t-value="12"/>
-                <t t-set="data_report_header_spacing" t-value="9"/>
-                <t t-set="data_report_dpi" t-value="110"/>
-                <div class="page">
-                    <h2>Partner Ledger</h2>
+            <t t-set="data_report_margin_top" t-value="8"/>
+            <t t-set="data_report_header_spacing" t-value="0"/>
+            <t t-set="data_report_dpi" t-value="96"/>
+            <t t-call="web.external_layout">
+                <div class="page pl-root"><t t-call="base_accounting_kit.report_common_header_and_style"/>
+                    <style>
+                        .pl-root {
+                            font-family: "DejaVu Sans", "Noto Sans", Arial, sans-serif;
+                            color: #10243e;
+                        }
+                        .pl-head {
+                            background: #f1f4fa;
+                            border: 1px solid #d7deec;
+                            border-radius: 4px;
+                            padding: 12px 14px;
+                            margin-bottom: 10px;
+                        }
+                        .pl-head-inner {
+                            display: table;
+                            width: 100%;
+                        }
+                        .pl-head-logo-wrap {
+                            display: table-cell;
+                            width: 120px;
+                            vertical-align: middle;
+                        }
+                        .pl-head-logo {
+                            max-height: 54px;
+                            max-width: 110px;
+                            object-fit: contain;
+                        }
+                        .pl-head-title-wrap {
+                            display: table-cell;
+                            text-align: center;
+                            vertical-align: middle;
+                        }
+                        .pl-title {
+                            margin: 0;
+                            color: #1f3b63;
+                            font-size: 24px;
+                            font-weight: 700;
+                        }
+                        .pl-root .bk-report-table th {
+                            background: #eef2fb;
+                            color: #1f3b63;
+                            font-weight: 700;
+                        }
+                        .pl-root .bk-report-table .text-end,
+                        .pl-root .bk-report-table .text-right {
+                            white-space: nowrap;
+                            font-family: "DejaVu Sans", "Noto Sans", Arial, sans-serif;
+                            font-weight: 600;
+                        }
+                        .pl-root .bk-report-table tbody tr:first-child td {
+                            background: #f8fafd;
+                            font-weight: 700;
+                        }
+                    </style>
+                    <div class="pl-head">
+                        <div class="pl-head-inner">
+                            <div class="pl-head-logo-wrap">
+                                <img t-if="env.company.logo" class="pl-head-logo" t-att-src="image_data_uri(env.company.logo)" alt="Logo"/>
+                            </div>
+                            <div class="pl-head-title-wrap">
+                                <h2 class="pl-title">Partner Ledger</h2>
+                            </div>
+                        </div>
+                    </div>
                     <div class="row">
                         <div class="col-3">
                             <strong>Company:</strong>
@@ -31,7 +93,7 @@
                         </div>
                     </div>
 
-                    <table class="table table-sm table-reports">
+                    <table class="table bk-report-table table-sm table-reports">
                         <thead>
                             <tr>
                                 <th>Date</th>
@@ -51,7 +113,7 @@
                                         -
                                         <strong t-esc="o.name"/>
                                     </td>
-                                    <td class="text-right">
+                                    <td class="text-end">
                                         <strong t-esc="sum_partner(data, o, 'debit')"
                                                 t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
                                     </td>

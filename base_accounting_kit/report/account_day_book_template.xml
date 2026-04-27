@@ -5,8 +5,8 @@
             <t t-set="data_report_margin_top" t-value="12"/>
             <t t-set="data_report_header_spacing" t-value="9"/>
             <t t-set="data_report_dpi" t-value="110"/>
-            <t t-call="web.internal_layout">
-                <div class="page"><br/>
+            <t t-call="web.external_layout">
+                <div class="page"><t t-call="base_accounting_kit.report_common_header_and_style"/><br/>
                     <h2><span t-esc="env.company.name"/>: Day Book Report
                     </h2>
                     <div class="row mt32" style="margin-bottom:3%;">
@@ -32,7 +32,7 @@
                         </div>
                     </div>
 
-                    <table class="table table-condensed">
+                    <table class="table bk-report-table table-condensed">
                         <thead>
                             <tr class="text-center">
                                 <th>Date</th>

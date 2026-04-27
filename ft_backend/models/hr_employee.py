@@ -53,9 +53,6 @@ class HrEmployee(models.Model):
         copy=False
     )
 
-
-
-
     @api.depends(
         'wage',
         'housing_allowance',
@@ -106,4 +103,3 @@ class HrEmployee(models.Model):
                     template.send_mail(emp.id, force_send=True)
 
                 emp.iqama_expiry_notified = True
-

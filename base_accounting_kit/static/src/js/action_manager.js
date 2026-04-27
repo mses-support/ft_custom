@@ -1,16 +1,20 @@
 /** @odoo-module*/
 import {registry} from "@web/core/registry";
 import {download} from "@web/core/network/download";
-import { BlockUI, unblockUI } from "@web/core/ui/block_ui";
+
 // Action manager for xlsx report
-registry.category('ir.actions.report handlers').add('xlsx', async (action) => {
-    if (action.report_type === 'xlsx'){
-       BlockUI;
-        await download({
-            url : '/xlsx_report',
-            data : action.data,
-            error : (error) => self.call('crash_manager', 'rpc_error', error),
-            complete: () => unblockUI,
-        });
+registry.category("ir.actions.report handlers").add("xlsx", async (action, options, env) => {
+    if (action.report_type === "xlsx") {
+        env.services.ui.block();
+        try {
+            await download({
+                url: "/xlsx_report",
+                data: action.data,
+            });
+        } finally {
+            env.services.ui.unblock();
+        }
+        return true;
     }
-})
+    return false;
+});

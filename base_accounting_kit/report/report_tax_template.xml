@@ -2,18 +2,53 @@
 <odoo>
     <template id="report_tax">
         <t t-call="web.html_container">
-            <t t-set="data_report_margin_top" t-value="12"/>
-            <t t-set="data_report_header_spacing" t-value="9"/>
+            <t t-set="data_report_margin_top" t-value="45"/>
+            <t t-set="data_report_header_spacing" t-value="30"/>
             <t t-set="data_report_dpi" t-value="110"/>
-            <t t-call="web.internal_layout">
-                <div class="page"><br/>
-                    <h3>Tax Report</h3>
-                    <div class="row">
-                        <div class="col-3">
+            <t t-call="web.external_layout">
+                <div class="page tax-root"><t t-call="base_accounting_kit.report_common_header_and_style"/>
+                    <style>
+                        .tax-root .tax-title {
+                            margin-top: 8px;
+                            margin-bottom: 10px;
+                            clear: both;
+                        }
+                        .tax-root .tax-meta {
+                            margin-bottom: 8px;
+                        }
+                        .tax-root .tax-meta p {
+                            margin: 0;
+                        }
+                        .tax-root .tax-section-title {
+                            margin: 14px 0 6px 0;
+                            font-size: 18px;
+                            font-weight: 700;
+                        }
+                        .tax-root .tax-amount {
+                            text-align: right;
+                            white-space: nowrap;
+                        }
+                        .tax-root .bk-report-table th {
+                            background: #eef2fb;
+                            color: #1f3b63;
+                            font-weight: 700;
+                        }
+                    </style>
+                    <h2 class="tax-title" t-esc="report_name or 'Tax Report'"/>
+                    <div class="row tax-meta">
+                        <div class="col-4">
                             <strong>Company:</strong>
                             <p t-esc="env.company.name"/>
                         </div>
-                        <div>
+                        <div class="col-4">
+                            <strong>Tax Scope:</strong>
+                            <p>
+                                <span t-if="data.get('tax_scope') == 'sale'">Sales Tax</span>
+                                <span t-if="data.get('tax_scope') == 'purchase'">Purchase Tax</span>
+                                <span t-if="data.get('tax_scope') not in ('sale', 'purchase')">Sales and Purchase</span>
+                            </p>
+                        </div>
+                        <div class="col-4">
                             <t t-if="data['date_from']">
                                 <strong>Date from :</strong>
                                 <span t-esc="data['date_from']"/>
@@ -25,49 +60,96 @@
                             </t>
                         </div>
                     </div>
-                    <table class="table table-sm table-reports">
-                        <thead>
-                            <tr class="text-centre">
-                                <th>Sale</th>
-                                <th>Net</th>
-                                <th>Tax</th>
-                            </tr>
-                        </thead>
-                        <tr align="left" t-foreach="lines['sale']" t-as="line">
-                            <td>
-                                <span t-esc="line.get('name')"/>
-                            </td>
-                            <td>
-                                <span t-att-style="style" t-esc="line.get('net')"
-                                      t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
-                            </td>
-                            <td>
-                                <span t-att-style="style" t-esc="line.get('tax')"
-                                      t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
-                            </td>
-                        </tr>
-                        <br/>
-                        <tr align="left">
-                            <td>
-                                <strong>Purchase</strong>
-                            </td>
-                            <td/>
-                            <td/>
-                        </tr>
-                        <tr align="left" t-foreach="lines['purchase']" t-as="line">
-                            <td>
-                                <span t-esc="line.get('name')"/>
-                            </td>
-                            <td>
-                                <span t-att-style="style" t-esc="line.get('net')"
-                                      t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
-                            </td>
-                            <td>
-                                <span t-att-style="style" t-esc="line.get('tax')"
-                                      t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
-                            </td>
-                        </tr>
-                    </table>
+                    <t t-if="data.get('tax_scope') in (False, 'all', 'sale')">
+                        <h4 class="tax-section-title">Sales VAT Details (Output VAT)</h4>
+                        <table class="table bk-report-table table-sm table-reports">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Invoice No</th>
+                                    <th>Customer Name</th>
+                                    <th>Customer VAT No</th>
+                                    <th class="text-end">Taxable Amount</th>
+                                    <th>VAT %</th>
+                                    <th class="text-end">VAT Amount</th>
+                                    <th class="text-end">Total Amount</th>
+                                    <th>Tax Code</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-if="not lines['sale']">
+                                    <tr>
+                                        <td colspan="9">No sales VAT entries for selected criteria.</td>
+                                    </tr>
+                                </t>
+                                <tr t-foreach="lines['sale']" t-as="line">
+                                    <td><span t-esc="line.get('date')"/></td>
+                                    <td><span t-esc="line.get('number')"/></td>
+                                    <td><span t-esc="line.get('partner_name')"/></td>
+                                    <td><span t-esc="line.get('partner_vat')"/></td>
+                                    <td class="tax-amount">
+                                        <span t-esc="line.get('taxable_amount')"
+                                              t-options="{'widget': 'float', 'precision': 2}"/>
+                                    </td>
+                                    <td><span t-esc="line.get('vat_percent')"/></td>
+                                    <td class="tax-amount">
+                                        <span t-esc="line.get('vat_amount')"
+                                              t-options="{'widget': 'float', 'precision': 2}"/>
+                                    </td>
+                                    <td class="tax-amount">
+                                        <span t-esc="line.get('total_amount')"
+                                              t-options="{'widget': 'float', 'precision': 2}"/>
+                                    </td>
+                                    <td><span t-esc="line.get('tax_code')"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </t>
+                    <t t-if="data.get('tax_scope') in (False, 'all', 'purchase')">
+                        <h4 class="tax-section-title">Purchase VAT Details (Input VAT)</h4>
+                        <table class="table bk-report-table table-sm table-reports">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Bill No</th>
+                                    <th>Vendor Name</th>
+                                    <th>Vendor VAT No</th>
+                                    <th class="text-end">Taxable Amount</th>
+                                    <th>VAT %</th>
+                                    <th class="text-end">VAT Amount</th>
+                                    <th class="text-end">Total Amount</th>
+                                    <th>Tax Code</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-if="not lines['purchase']">
+                                    <tr>
+                                        <td colspan="9">No purchase VAT entries for selected criteria.</td>
+                                    </tr>
+                                </t>
+                                <tr t-foreach="lines['purchase']" t-as="line">
+                                    <td><span t-esc="line.get('date')"/></td>
+                                    <td><span t-esc="line.get('number')"/></td>
+                                    <td><span t-esc="line.get('partner_name')"/></td>
+                                    <td><span t-esc="line.get('partner_vat')"/></td>
+                                    <td class="tax-amount">
+                                        <span t-esc="line.get('taxable_amount')"
+                                              t-options="{'widget': 'float', 'precision': 2}"/>
+                                    </td>
+                                    <td><span t-esc="line.get('vat_percent')"/></td>
+                                    <td class="tax-amount">
+                                        <span t-esc="line.get('vat_amount')"
+                                              t-options="{'widget': 'float', 'precision': 2}"/>
+                                    </td>
+                                    <td class="tax-amount">
+                                        <span t-esc="line.get('total_amount')"
+                                              t-options="{'widget': 'float', 'precision': 2}"/>
+                                    </td>
+                                    <td><span t-esc="line.get('tax_code')"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </t>
                 </div>
             </t>
         </t>

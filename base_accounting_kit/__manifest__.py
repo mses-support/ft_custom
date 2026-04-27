@@ -74,6 +74,7 @@
         'wizard/account_bank_book_report_views.xml',
         'wizard/account_cash_book_report_views.xml',
         'wizard/account_day_book_report_views.xml',
+        'report/report_common_template.xml',
         'report/report_financial_template.xml',
         'report/general_ledger_report_template.xml',
         'report/report_journal_audit_template.xml',

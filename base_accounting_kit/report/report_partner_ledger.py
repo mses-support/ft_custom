@@ -64,10 +64,15 @@ class ReportPartnerLedger(models.AbstractModel):
         date_format = lang_id.date_format
         for r in res:
             r['date'] = r['date']
-            r['displayed_name'] = '-'.join(
-                r[field_name] for field_name in ('move_name', 'ref', 'name')
-                if r[field_name] not in (None, '', '/')
-            )
+            # Avoid showing duplicate reference chunks (e.g. move_name == ref).
+            parts = []
+            for field_name in ('move_name', 'ref', 'name'):
+                value = r.get(field_name)
+                if value in (None, '', '/'):
+                    continue
+                if value not in parts:
+                    parts.append(value)
+            r['displayed_name'] = ' - '.join(parts)
             sum += r['debit'] - r['credit']
             r['progress'] = sum
             r['currency_id'] = currency.browse(r.get('currency_id'))
@@ -134,6 +139,7 @@ class ReportPartnerLedger(models.AbstractModel):
                             (tuple(data['computed']['ACCOUNT_TYPE']),)
                             )
         data['computed']['account_ids'] = [a for (a,) in self.env.cr.fetchall()]
+        selected_partner_ids = data['form'].get('partner_ids') or []
 
         # prevent empty tuple issue
         account_ids = tuple(data['computed']['account_ids']) or (0,)
@@ -152,6 +158,9 @@ class ReportPartnerLedger(models.AbstractModel):
                 AND "account_move_line".account_id IN %s
                 AND account.active
                 AND """ + query_get_data[1] + reconcile_clause  # ✅ changed here
+        if selected_partner_ids:
+            query += ' AND "account_move_line".partner_id IN %s'
+            params.append(tuple(selected_partner_ids))
 
         self.env.cr.execute(query, tuple(params))
         partner_ids = [res['partner_id'] for res in self.env.cr.dictfetchall()]
