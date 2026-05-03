@@ -7,3 +7,5 @@ from . import res_partner
 from . import kit_account_tax_report
 from . import customer_invoices_payments_report
 from . import vendor_invoices_payments_report
+from . import financial_statement
+from . import financial_dynamic_service

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="ft_backend.FtFinancialReportAction">
+        <div class="o_action">
+            <div class="p-3" style="background:#f8f9fb; border-bottom:1px solid #dfe5ec;">
+                <h3 t-esc="state.report ? state.report.title : 'Financial Report'"/>
+                <div class="d-flex gap-2 flex-wrap align-items-end">
+                    <div t-if="state.options.report_type === 'income_statement'">
+                        <label>Date From</label>
+                        <input type="date" class="form-control" t-on-change="(ev) => this.onInputDate('date_from', ev)" t-att-value="state.options.date_from || ''"/>
+                    </div>
+                    <div>
+                        <label>Date To</label>
+                        <input type="date" class="form-control" t-on-change="(ev) => this.onInputDate('date_to', ev)" t-att-value="state.options.date_to || ''"/>
+                    </div>
+                    <div t-if="state.options.report_type === 'balance_sheet'">
+                        <label>Comparison As Of</label>
+                        <input type="date" class="form-control" t-on-change="(ev) => this.onInputDate('comparison_date_to', ev)" t-att-value="state.options.comparison_date_to || ''"/>
+                    </div>
+                    <div t-if="state.options.report_type === 'income_statement'">
+                        <label>Comparison From</label>
+                        <input type="date" class="form-control" t-on-change="(ev) => this.onInputDate('comparison_date_from', ev)" t-att-value="state.options.comparison_date_from || ''"/>
+                    </div>
+                    <div t-if="state.options.report_type === 'income_statement'">
+                        <label>Comparison To</label>
+                        <input type="date" class="form-control" t-on-change="(ev) => this.onInputDate('comparison_date_to', ev)" t-att-value="state.options.comparison_date_to || ''"/>
+                    </div>
+                    <div>
+                        <label>Options</label>
+                        <select class="form-select" t-on-change="onTargetMove">
+                            <option value="posted" t-att-selected="state.options.target_move === 'posted'">Posted Entries Only</option>
+                            <option value="all" t-att-selected="state.options.target_move === 'all'">All Entries</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" t-on-click="onApplyFilter">Apply</button>
+                    <button class="btn btn-secondary" t-on-click="onExportPdf">Print PDF</button>
+                    <button class="btn btn-secondary" t-on-click="onExportXlsx">Download Excel</button>
+                </div>
+            </div>
+
+            <div class="p-3">
+                <div t-if="state.loading">Loading...</div>
+                <t t-if="!state.loading and state.report">
+                    <div class="mb-2"><strong t-esc="state.report.period_text"/></div>
+                    <table class="table table-sm table-bordered" style="background:white;">
+                        <thead>
+                            <tr>
+                                <th>Particulars</th>
+                                <th class="text-end">Amount</th>
+                                <th class="text-end">Comparison</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="state.report.rows" t-as="row" t-key="row.code">
+                                <td t-attf-style="padding-left: #{(row.level || 0) * 20 + 6}px;">
+                                    <strong t-if="row.is_total" t-esc="row.name"/>
+                                    <span t-if="!row.is_total" t-esc="row.name"/>
+                                </td>
+                                <td class="text-end"><span t-esc="(row.amount || 0).toFixed(2)"/></td>
+                                <td class="text-end"><span t-esc="(row.comparison_amount || 0).toFixed(2)"/></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </t>
+            </div>
+        </div>
+    </t>
+</templates>

@@ -1,3 +1,7 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_customer_invoices_payments_report,customer.invoices.payments.report,model_customer_invoices_payments_report,account.group_account_user,1,1,1,1
 access_vendor_invoices_payments_report,vendor.invoices.payments.report,model_vendor_invoices_payments_report,account.group_account_user,1,1,1,1
+access_ft_financial_report_config,ft.financial.report.config,model_ft_financial_report_config,account.group_account_manager,1,1,1,1
+access_ft_financial_report_config_line,ft.financial.report.config.line,model_ft_financial_report_config_line,account.group_account_manager,1,1,1,1
+access_ft_balance_sheet_wizard,ft.balance.sheet.wizard,model_ft_balance_sheet_wizard,account.group_account_user,1,1,1,1
+access_ft_income_statement_wizard,ft.income.statement.wizard,model_ft_income_statement_wizard,account.group_account_user,1,1,1,1

@@ -16,14 +16,24 @@
         "views/company_view.xml",
         "views/res_partner_view.xml",
         'views/hr_employee_view.xml',
+        "data/financial_statement_config_data.xml",
+        "data/financial_dynamic_reports.xml",
+        "views/financial_statement_views.xml",
         "reports/invoice_report.xml",
         "reports/invoice_report_no_header_footer.xml",
         "reports/tax_report.xml",
         "reports/tax_report_green.xml",
         "reports/customer_invoices_payments_report.xml",
         "reports/vendor_invoices_payments_report.xml",
+        "reports/financial_statement_reports.xml",
         "reports/purchase_order_report.xml",
         "reports/purchase_order_rfq_report.xml"
     ],
+    "assets": {
+        "web.assets_backend": [
+            "ft_backend/static/src/js/financial_report_action.js",
+            "ft_backend/static/src/xml/financial_report_action.xml",
+        ],
+    },
     "installable": True
 }
