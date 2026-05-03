@@ -39,6 +39,7 @@ class FinancialStatementReportMixin(models.AbstractModel):
         date_from=None,
         date_to=None,
         journal_ids=None,
+        analytic_plan_ids=None,
         analytic_account_ids=None,
     ):
         if not account_ids:
@@ -57,8 +58,12 @@ class FinancialStatementReportMixin(models.AbstractModel):
             domain.append(("date", "<=", date_to))
         if journal_ids:
             domain.append(("journal_id", "in", journal_ids))
-        if analytic_account_ids:
-            for analytic_id in analytic_account_ids:
+        analytic_ids = set(analytic_account_ids or [])
+        if analytic_plan_ids:
+            plan_accounts = self.env["account.analytic.account"].search([("plan_id", "in", analytic_plan_ids)]).ids
+            analytic_ids.update(plan_accounts)
+        if analytic_ids:
+            for analytic_id in analytic_ids:
                 domain.append(("analytic_distribution", "ilike", f'"{analytic_id}"'))
         groups = self.env["account.move.line"].read_group(domain, ["balance:sum"], [])
         return float(groups[0]["balance"] if groups else 0.0)
@@ -72,6 +77,7 @@ class FinancialStatementReportMixin(models.AbstractModel):
         date_from=None,
         date_to=None,
         journal_ids=None,
+        analytic_plan_ids=None,
         analytic_account_ids=None,
         comparison_date_from=None,
         comparison_date_to=None,
@@ -92,6 +98,7 @@ class FinancialStatementReportMixin(models.AbstractModel):
                     date_from,
                     date_to,
                     journal_ids=journal_ids,
+                    analytic_plan_ids=analytic_plan_ids,
                     analytic_account_ids=analytic_account_ids,
                 )
                 cmp_amt = self._sum_accounts(
@@ -101,6 +108,7 @@ class FinancialStatementReportMixin(models.AbstractModel):
                     comparison_date_from,
                     comparison_date_to,
                     journal_ids=journal_ids,
+                    analytic_plan_ids=analytic_plan_ids,
                     analytic_account_ids=analytic_account_ids,
                 )
                 if line.sign == "invert":
@@ -171,6 +179,7 @@ class ReportBalanceSheetCustom(models.AbstractModel):
             form.get("target_move"),
             date_to=form.get("date_to"),
             journal_ids=form.get("journal_ids") or [],
+            analytic_plan_ids=form.get("analytic_plan_ids") or [],
             analytic_account_ids=form.get("analytic_account_ids") or [],
             comparison_date_to=form.get("comparison_date_to"),
         )
@@ -185,6 +194,7 @@ class ReportBalanceSheetCustom(models.AbstractModel):
                 "target_move": form.get("target_move"),
                 "journals": ", ".join(self.env["account.journal"].browse(form.get("journal_ids") or []).mapped("name")),
                 "analytics": ", ".join(self.env["account.analytic.account"].browse(form.get("analytic_account_ids") or []).mapped("name")),
+                "analytic_plans": ", ".join(self.env["account.analytic.plan"].browse(form.get("analytic_plan_ids") or []).mapped("name")),
             },
             "rows": rows,
         }
@@ -210,6 +220,7 @@ class ReportIncomeStatementCustom(models.AbstractModel):
             date_from=form.get("date_from"),
             date_to=form.get("date_to"),
             journal_ids=form.get("journal_ids") or [],
+            analytic_plan_ids=form.get("analytic_plan_ids") or [],
             analytic_account_ids=form.get("analytic_account_ids") or [],
             comparison_date_from=form.get("comparison_date_from"),
             comparison_date_to=form.get("comparison_date_to"),
@@ -229,6 +240,7 @@ class ReportIncomeStatementCustom(models.AbstractModel):
                 "target_move": form.get("target_move"),
                 "journals": ", ".join(self.env["account.journal"].browse(form.get("journal_ids") or []).mapped("name")),
                 "analytics": ", ".join(self.env["account.analytic.account"].browse(form.get("analytic_account_ids") or []).mapped("name")),
+                "analytic_plans": ", ".join(self.env["account.analytic.plan"].browse(form.get("analytic_plan_ids") or []).mapped("name")),
             },
             "rows": rows,
         }

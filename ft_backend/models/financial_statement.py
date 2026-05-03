@@ -10,7 +10,11 @@ class FtFinancialReportConfig(models.Model):
 
     name = fields.Char(required=True)
     statement_type = fields.Selection(
-        [("balance_sheet", "Balance Sheet"), ("income_statement", "Income Statement")],
+        [
+            ("balance_sheet", "Balance Sheet"),
+            ("income_statement", "Income Statement"),
+            ("cash_flow_custom", "Cash Flow Statement"),
+        ],
         required=True,
         index=True,
     )
@@ -171,6 +175,7 @@ class FtIncomeStatementWizard(models.TransientModel, ReportXlsxMixin):
     )
     currency_id = fields.Many2one("res.currency", related="company_id.currency_id", readonly=True)
     journal_ids = fields.Many2many("account.journal", string="Journals")
+    analytic_plan_ids = fields.Many2many("account.analytic.plan", string="Analytic Plans")
     analytic_account_ids = fields.Many2many("account.analytic.account", string="Analytic Accounts")
     comparison_date_from = fields.Date(string="Comparison From")
     comparison_date_to = fields.Date(string="Comparison To")
@@ -192,6 +197,7 @@ class FtIncomeStatementWizard(models.TransientModel, ReportXlsxMixin):
                     "target_move",
                     "currency_id",
                     "journal_ids",
+                    "analytic_plan_ids",
                     "analytic_account_ids",
                     "comparison_date_from",
                     "comparison_date_to",
@@ -211,6 +217,7 @@ class FtIncomeStatementWizard(models.TransientModel, ReportXlsxMixin):
                     "target_move",
                     "currency_id",
                     "journal_ids",
+                    "analytic_plan_ids",
                     "analytic_account_ids",
                     "comparison_date_from",
                     "comparison_date_to",
@@ -232,6 +239,7 @@ class FtIncomeStatementWizard(models.TransientModel, ReportXlsxMixin):
                 "target_move",
                 "currency_id",
                 "journal_ids",
+                "analytic_plan_ids",
                 "analytic_account_ids",
                 "comparison_date_from",
                 "comparison_date_to",
@@ -248,6 +256,7 @@ class FtIncomeStatementWizard(models.TransientModel, ReportXlsxMixin):
             date_from=form.get("date_from"),
             date_to=form.get("date_to"),
             journal_ids=form.get("journal_ids") or [],
+            analytic_plan_ids=form.get("analytic_plan_ids") or [],
             analytic_account_ids=form.get("analytic_account_ids") or [],
             comparison_date_from=form.get("comparison_date_from"),
             comparison_date_to=form.get("comparison_date_to"),

@@ -9,3 +9,5 @@ from . import customer_invoices_payments_report
 from . import vendor_invoices_payments_report
 from . import financial_statement
 from . import financial_dynamic_service
+
+from . import custom_cash_flow_statement

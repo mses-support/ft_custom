@@ -2,10 +2,10 @@
 <templates xml:space="preserve">
     <t t-name="ft_backend.FtFinancialReportAction">
         <div class="o_action">
-            <div class="p-3" style="background:#f8f9fb; border-bottom:1px solid #dfe5ec;">
-                <h3 t-esc="state.report ? state.report.title : 'Financial Report'"/>
-                <div class="d-flex gap-2 flex-wrap align-items-end">
-                    <div t-if="state.options.report_type === 'income_statement'">
+            <div class="p-2" style="background:#f8f9fb; border-bottom:1px solid #dfe5ec;">
+                <h4 class="mb-2" t-esc="state.report ? state.report.title : 'Financial Report'"/>
+                <div class="d-flex gap-2 flex-nowrap align-items-end" style="overflow-x:auto; padding-bottom:4px;">
+                    <div t-if="state.options.report_type === 'income_statement' or state.options.report_type === 'cash_flow_custom'">
                         <label>Date From</label>
                         <input type="date" class="form-control" t-on-change="(ev) => this.onInputDate('date_from', ev)" t-att-value="state.options.date_from || ''"/>
                     </div>
@@ -32,35 +32,72 @@
                             <option value="all" t-att-selected="state.options.target_move === 'all'">All Entries</option>
                         </select>
                     </div>
+
+                    <div t-if="state.options.report_type === 'cash_flow_custom'" style="min-width:280px; max-width:340px;">
+                        <label>Report Mode</label>
+                        <select class="form-select mb-1" t-on-change="onCashFlowModeChange">
+                            <option value="single" t-att-selected="state.options.cash_flow_mode === 'single'">Standard</option>
+                            <option value="three_year" t-att-selected="state.options.cash_flow_mode === 'three_year'">3-Year</option>
+                            <option value="twelve_month" t-att-selected="state.options.cash_flow_mode === 'twelve_month'">12-Month</option>
+                        </select>
+                        <label>Journals</label>
+                        <MultiRecordSelector
+                            resModel="'account.journal'"
+                            resIds="state.options.journal_ids || []"
+                            update.bind="onJournalIdsChange"
+                            placeholder="'Select journals...'"
+                        />
+                    </div>
+                    <div t-if="state.options.report_type === 'cash_flow_custom' or state.options.report_type === 'income_statement'" style="min-width:260px; max-width:320px;">
+                        <label>Analytic Plans</label>
+                        <MultiRecordSelector
+                            resModel="'account.analytic.plan'"
+                            resIds="state.options.analytic_plan_ids || []"
+                            update.bind="onAnalyticPlanIdsChange"
+                            placeholder="'Select analytic plans...'"
+                        />
+                    </div>
+                    <div t-if="state.options.report_type === 'cash_flow_custom' or state.options.report_type === 'income_statement'" style="min-width:260px; max-width:320px;">
+                        <label>Analytic Accounts</label>
+                        <MultiRecordSelector
+                            resModel="'account.analytic.account'"
+                            resIds="state.options.analytic_account_ids || []"
+                            update.bind="onAnalyticAccountIdsChange"
+                            placeholder="'Select analytic accounts...'"
+                        />
+                    </div>
+
                     <button class="btn btn-primary" t-on-click="onApplyFilter">Apply</button>
                     <button class="btn btn-secondary" t-on-click="onExportPdf">Print PDF</button>
                     <button class="btn btn-secondary" t-on-click="onExportXlsx">Download Excel</button>
                 </div>
             </div>
 
-            <div class="p-3">
+            <div class="p-2" style="height: calc(100vh - 180px); overflow: auto;">
                 <div t-if="state.loading">Loading...</div>
                 <t t-if="!state.loading and state.report">
                     <div class="mb-2"><strong t-esc="state.report.period_text"/></div>
-                    <table class="table table-sm table-bordered" style="background:white;">
-                        <thead>
+                    <div style="overflow:auto; max-width:100%; max-height: calc(100vh - 260px);">
+                    <table class="table table-sm table-bordered mb-0" style="background:white; min-width:760px; table-layout:auto;">
+                        <thead style="white-space:nowrap;">
                             <tr>
                                 <th>Particulars</th>
                                 <th class="text-end">Amount</th>
-                                <th class="text-end">Comparison</th>
+                                <th class="text-end" t-if="state.options.report_type !== 'cash_flow_custom'">Comparison</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody style="white-space:nowrap;">
                             <tr t-foreach="state.report.rows" t-as="row" t-key="row.code">
                                 <td t-attf-style="padding-left: #{(row.level || 0) * 20 + 6}px;">
                                     <strong t-if="row.is_total" t-esc="row.name"/>
                                     <span t-if="!row.is_total" t-esc="row.name"/>
                                 </td>
                                 <td class="text-end"><span t-esc="(row.amount || 0).toFixed(2)"/></td>
-                                <td class="text-end"><span t-esc="(row.comparison_amount || 0).toFixed(2)"/></td>
+                                <td class="text-end" t-if="state.options.report_type !== 'cash_flow_custom'"><span t-esc="(row.comparison_amount || 0).toFixed(2)"/></td>
                             </tr>
                         </tbody>
                     </table>
+                    </div>
                 </t>
             </div>
         </div>

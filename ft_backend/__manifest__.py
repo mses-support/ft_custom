@@ -18,6 +18,7 @@
         'views/hr_employee_view.xml',
         "data/financial_statement_config_data.xml",
         "data/financial_dynamic_reports.xml",
+        "views/custom_cash_flow_statement_view.xml",
         "views/financial_statement_views.xml",
         "reports/invoice_report.xml",
         "reports/invoice_report_no_header_footer.xml",
@@ -26,6 +27,7 @@
         "reports/customer_invoices_payments_report.xml",
         "reports/vendor_invoices_payments_report.xml",
         "reports/financial_statement_reports.xml",
+        "reports/custom_cash_flow_statement_report.xml",
         "reports/purchase_order_report.xml",
         "reports/purchase_order_rfq_report.xml"
     ],

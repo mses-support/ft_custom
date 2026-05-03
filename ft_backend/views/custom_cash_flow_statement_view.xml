@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_custom_cash_flow_statement_form" model="ir.ui.view">
+        <field name="name">ft.custom.cash.flow.statement.form</field>
+        <field name="model">ft.custom.cash.flow.statement</field>
+        <field name="arch" type="xml">
+            <form string="Cash Flow Statement (Custom)">
+                <group col="4">
+                    <field name="company_id"/>
+                    <field name="target_move"/>
+                    <field name="date_from"/>
+                    <field name="date_to"/>
+                    <field name="journal_ids" widget="many2many_tags"/>
+                    <field name="analytic_plan_ids" widget="many2many_tags"/>
+                    <field name="analytic_account_ids" widget="many2many_tags"/>
+                    <field name="cash_flow_mode"/>
+                </group>
+                <footer>
+                    <button name="action_print" string="Print" type="object" class="oe_highlight"/>
+                    <button name="action_view" string="View" type="object" class="btn btn-secondary"/>
+                    <button name="check_report_xlsx" string="Download Excel" type="object" class="btn btn-secondary"/>
+                    <button string="Cancel" class="btn btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_custom_cash_flow_statement_wizard" model="ir.actions.act_window">
+        <field name="name">Cash Flow Statement (Custom)</field>
+        <field name="res_model">ft.custom.cash.flow.statement</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_custom_cash_flow_statement_form"/>
+        <field name="target">new</field>
+    </record>
+
+    <record id="action_custom_cash_flow_statement_default_view" model="ir.actions.server">
+        <field name="name">Cash Flow Statement (Custom)</field>
+        <field name="model_id" ref="model_ft_custom_cash_flow_statement"/>
+        <field name="state">code</field>
+        <field name="code"><![CDATA[
+today = datetime.date.today()
+wizard = env['ft.custom.cash.flow.statement'].create({
+    'company_id': env.company.id,
+    'date_from': env.company.compute_fiscalyear_dates(today).get('date_from'),
+    'date_to': today,
+    'target_move': 'posted',
+    'journal_ids': [(6, 0, env['account.journal'].search([('company_id', '=', env.company.id)]).ids)],
+})
+action = wizard.action_view()
+        ]]></field>
+    </record>
+
+    <record id="action_ft_custom_cash_flow_dynamic" model="ir.actions.client">
+        <field name="name">Cash Flow Statement (Custom)</field>
+        <field name="tag">ft_financial_report</field>
+        <field name="context">{'report_type': 'cash_flow_custom'}</field>
+    </record>
+
+    <menuitem id="menu_custom_cash_flow_statement"
+              name="Cash Flow Statement (Custom)"
+              sequence="6"
+              action="action_ft_custom_cash_flow_dynamic"
+              parent="base_accounting_kit.account_reports_generic_statements"
+              groups="base_accounting_kit.group_account_chief,account.group_account_user"/>
+
+    <!-- Override base cash flow menu to avoid opening wizard -->
+    <record id="base_accounting_kit.menu_account_cash_flow_report" model="ir.ui.menu">
+        <field name="action" ref="action_ft_custom_cash_flow_dynamic"/>
+    </record>
+
+</odoo>

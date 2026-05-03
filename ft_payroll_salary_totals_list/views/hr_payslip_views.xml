@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hr_payslip_tree_inherit_salary_totals" model="ir.ui.view">
+        <field name="name">hr.payslip.view.list.inherit.salary.totals</field>
+        <field name="model">hr.payslip</field>
+        <field name="inherit_id" ref="hr_payroll_community.hr_payslip_view_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list/field[@name='date_to']" position="after">
+                <field name="basic_salary" optional="show"/>
+                <field name="temporary_input" optional="show"/>
+                <field name="employee_bonus" optional="show"/>
+                <field name="gross_salary" optional="show"/>
+                <field name="net_salary" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="paperformat_cash_flow_custom_compact" model="report.paperformat">
+        <field name="name">Cash Flow Compact A4</field>
+        <field name="default" eval="False"/>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">8</field>
+        <field name="margin_bottom">8</field>
+        <field name="margin_left">8</field>
+        <field name="margin_right">8</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">4</field>
+        <field name="dpi">96</field>
+    </record>
+
+    <record id="action_report_custom_cash_flow_statement" model="ir.actions.report">
+        <field name="name">Cash Flow Statement (Custom)</field>
+        <field name="model">ft.custom.cash.flow.statement</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">ft_backend.report_custom_cash_flow_statement</field>
+        <field name="report_file">ft_backend.report_custom_cash_flow_statement</field>
+        <field name="paperformat_id" ref="ft_backend.paperformat_cash_flow_custom_compact"/>
+    </record>
+
+    <record id="action_report_custom_cash_flow_statement_html" model="ir.actions.report">
+        <field name="name">Cash Flow Statement (Custom HTML)</field>
+        <field name="model">ft.custom.cash.flow.statement</field>
+        <field name="report_type">qweb-html</field>
+        <field name="report_name">ft_backend.report_custom_cash_flow_statement</field>
+        <field name="report_file">ft_backend.report_custom_cash_flow_statement</field>
+    </record>
+
+    <template id="report_custom_cash_flow_statement">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+                <div class="page" style="font-size:10px; color:#000;">
+                    <style>
+                        .cf-wrap { width:100%; border:1px solid #d8d8d8; padding:4px; }
+                        .cf-title { text-align:center; color:#2f5ea6; font-size:22px; font-weight:700; margin:0 0 6px 0; }
+                        .cf-section { background:#355a9b; color:#fff; font-weight:700; padding:2px 5px; margin-top:6px; }
+                        .cf-net { background:#edf1f7; border-top:1px solid #cfd9ea; border-bottom:1px solid #cfd9ea; font-weight:700; }
+                        .cf-table { width:100%; border-collapse:collapse; table-layout:fixed; }
+                        .cf-table td, .cf-table th { padding:1px 4px; border:1px solid #cfcfcf; }
+                        .cf-table th { background:#355a9b; color:#fff; border-color:#355a9b; }
+                        .cf-lbl { text-align:left; }
+                        .cf-amt { text-align:right; }
+                        .cf-indent { padding-left:18px !important; }
+                        .cf-final { background:#dbe4f2; font-weight:700; }
+                    </style>
+
+                    <div class="cf-wrap" t-if="mode == 'single'">
+                        <div class="cf-title">Cash Flow Statement</div>
+                        <table class="cf-table" style="margin-bottom:4px;">
+                            <tr><td class="cf-lbl" style="width:75%;">For the Year Ending</td><td class="cf-amt" t-esc="date_to_text"/></tr>
+                            <tr><td class="cf-lbl">Cash at Beginning of Year</td><td class="cf-amt" t-esc="fmt(opening_cash)"/></tr>
+                        </table>
+
+                        <div class="cf-section">Operations</div>
+                        <table class="cf-table">
+                            <tr><td class="cf-lbl">Cash receipts from Customers</td><td class="cf-amt" t-esc="fmt(mapped['operations']['cash_receipts_customers'])"/></tr>
+                            <tr><td class="cf-lbl">Cash receipts from Other Operations</td><td class="cf-amt" t-esc="fmt(mapped['operations']['cash_receipts_other'])"/></tr>
+                            <tr><td class="cf-lbl">Cash paid for Inventory purchases</td><td class="cf-amt" t-esc="fmt(mapped['operations']['cash_paid_inventory'])"/></tr>
+                            <tr><td class="cf-lbl">Cash paid for General operating and administrative expenses</td><td class="cf-amt" t-esc="fmt(mapped['operations']['cash_paid_general_admin'])"/></tr>
+                            <tr><td class="cf-lbl">Cash paid for Wage expenses</td><td class="cf-amt" t-esc="fmt(mapped['operations']['cash_paid_wages'])"/></tr>
+                            <tr><td class="cf-lbl">Cash paid for Interest</td><td class="cf-amt" t-esc="fmt(mapped['operations']['cash_paid_interest'])"/></tr>
+                            <tr><td class="cf-lbl">Cash paid for Income taxes</td><td class="cf-amt" t-esc="fmt(mapped['operations']['cash_paid_income_taxes'])"/></tr>
+                            <tr class="cf-net"><td class="cf-lbl">Net Cash Flow from Operations</td><td class="cf-amt" t-esc="fmt(mapped['operations']['net'])"/></tr>
+                        </table>
+
+                        <div class="cf-section">Investing Activities</div>
+                        <table class="cf-table">
+                            <tr><td class="cf-lbl">Sale of property and equipment</td><td class="cf-amt" t-esc="fmt(mapped['investing']['cash_receipts_sale_ppe'])"/></tr>
+                            <tr><td class="cf-lbl">Collection of principal on loans</td><td class="cf-amt" t-esc="fmt(mapped['investing']['cash_receipts_collection_loans'])"/></tr>
+                            <tr><td class="cf-lbl">Sale of investment securities</td><td class="cf-amt" t-esc="fmt(mapped['investing']['cash_receipts_sale_investments'])"/></tr>
+                            <tr><td class="cf-lbl">Purchase of property and equipment</td><td class="cf-amt" t-esc="fmt(mapped['investing']['cash_paid_purchase_ppe'])"/></tr>
+                            <tr><td class="cf-lbl">Making loans to other entities</td><td class="cf-amt" t-esc="fmt(mapped['investing']['cash_paid_loans_to_others'])"/></tr>
+                            <tr><td class="cf-lbl">Purchase of investment securities</td><td class="cf-amt" t-esc="fmt(mapped['investing']['cash_paid_purchase_investments'])"/></tr>
+                            <tr class="cf-net"><td class="cf-lbl">Net Cash Flow from Investing Activities</td><td class="cf-amt" t-esc="fmt(mapped['investing']['net'])"/></tr>
+                        </table>
+
+                        <div class="cf-section">Financing Activities</div>
+                        <table class="cf-table">
+                            <tr><td class="cf-lbl">Issuance of stock</td><td class="cf-amt" t-esc="fmt(mapped['financing']['cash_receipts_issuance_stock'])"/></tr>
+                            <tr><td class="cf-lbl">Borrowing</td><td class="cf-amt" t-esc="fmt(mapped['financing']['cash_receipts_borrowing'])"/></tr>
+                            <tr><td class="cf-lbl">Repurchase of stock (treasury stock)</td><td class="cf-amt" t-esc="fmt(mapped['financing']['cash_paid_treasury_stock'])"/></tr>
+                            <tr><td class="cf-lbl">Repayment of loans</td><td class="cf-amt" t-esc="fmt(mapped['financing']['cash_paid_repayment_loans'])"/></tr>
+                            <tr><td class="cf-lbl">Dividends</td><td class="cf-amt" t-esc="fmt(mapped['financing']['cash_paid_dividends'])"/></tr>
+                            <tr class="cf-net"><td class="cf-lbl">Net Cash Flow from Financing Activities</td><td class="cf-amt" t-esc="fmt(mapped['financing']['net'])"/></tr>
+                            <tr class="cf-final"><td class="cf-lbl">Net Cash Flow</td><td class="cf-amt" t-esc="fmt(mapped['net_increase'])"/></tr>
+                            <tr><td class="cf-lbl">Cash at End of Year</td><td class="cf-amt" t-esc="fmt(closing_cash)"/></tr>
+                        </table>
+                    </div>
+
+                    <div class="cf-wrap" t-if="mode != 'single'">
+                        <div class="cf-title" t-esc="report_name"/>
+                        <table class="cf-table" style="margin-bottom:4px;">
+                            <tr>
+                                <td class="cf-lbl">Period</td>
+                                <t t-foreach="period_labels" t-as="p" t-key="p"><td class="cf-amt" t-esc="p"/></t>
+                            </tr>
+                            <tr>
+                                <td class="cf-lbl">Cash at Beginning</td>
+                                <t t-foreach="opening_cash" t-as="v" t-key="v_index"><td class="cf-amt" t-esc="fmt(v)"/></t>
+                            </tr>
+                        </table>
+
+                        <table class="cf-table">
+                            <thead>
+                                <tr>
+                                    <th class="cf-lbl">Particulars</th>
+                                    <t t-foreach="period_labels" t-as="p" t-key="'h_'+p"><th class="cf-amt" t-esc="p"/></t>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="rows" t-as="r" t-key="r['name']">
+                                    <tr t-att-class="'cf-net' if r['type'] == 'total' else ('cf-final' if r['type'] == 'final' else '')">
+                                        <td class="cf-lbl" t-esc="r['name']"/>
+                                        <t t-foreach="r['values']" t-as="v" t-key="v_index"><td class="cf-amt" t-esc="fmt(v)"/></t>
+                                    </tr>
+                                </t>
+                                <tr>
+                                    <td class="cf-lbl">Cash at End</td>
+                                    <t t-foreach="closing_cash" t-as="v" t-key="'c_'+v_index"><td class="cf-amt" t-esc="fmt(v)"/></t>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

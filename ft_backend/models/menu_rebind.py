@@ -25,6 +25,7 @@ class FtMenuRebind(models.AbstractModel):
 
         act_bs = env.ref("ft_backend.action_ft_balance_sheet_dynamic", raise_if_not_found=False)
         act_is = env.ref("ft_backend.action_ft_income_statement_dynamic", raise_if_not_found=False)
+        act_cf = env.ref("ft_backend.action_ft_custom_cash_flow_dynamic", raise_if_not_found=False)
         if not (act_bs and act_is):
             return res
 
@@ -34,6 +35,14 @@ class FtMenuRebind(models.AbstractModel):
             "ft_backend.menu_ft_balance_sheet_report": act_bs,
             "ft_backend.menu_ft_income_statement_report": act_is,
         }
+        if act_cf:
+            mapping.update(
+                {
+                    "base_accounting_kit.menu_account_cash_flow_report": act_cf,
+                    "ft_backend.menu_ft_cash_flow_statement_report": act_cf,
+                    "ft_backend.menu_custom_cash_flow_statement": act_cf,
+                }
+            )
         for xmlid, action in mapping.items():
             menu = env.ref(xmlid, raise_if_not_found=False)
             if menu:
@@ -63,5 +72,31 @@ class FtMenuRebind(models.AbstractModel):
                 menu.write({"action": f"ir.actions.client,{act_bs.id}"})
             elif "profit" in label or "income" in label or "loss" in label:
                 menu.write({"action": f"ir.actions.client,{act_is.id}"})
+            elif "cash flow" in label and act_cf:
+                menu.write({"action": f"ir.actions.client,{act_cf.id}"})
+
+        # Force cash flow menus still pointing to wizard/server action.
+        if act_cf:
+            cashflow_menus = env["ir.ui.menu"].sudo().search([("name", "ilike", "cash flow")])
+            for menu in cashflow_menus:
+                action = menu.action
+                if not action:
+                    continue
+                if isinstance(action, str):
+                    parts = action.split(",")
+                    if len(parts) != 2:
+                        continue
+                    try:
+                        action_id = int(parts[1])
+                    except ValueError:
+                        continue
+                    action_model = env[parts[0]].sudo().browse(action_id) if parts[0] in env else False
+                    if not action_model or not action_model.exists():
+                        continue
+                    action = action_model
+                if action.type == "ir.actions.act_window" and getattr(action, "res_model", None) == "ft.custom.cash.flow.statement":
+                    menu.write({"action": f"ir.actions.client,{act_cf.id}"})
+                if action.type == "ir.actions.server":
+                    menu.write({"action": f"ir.actions.client,{act_cf.id}"})
 
         return res
