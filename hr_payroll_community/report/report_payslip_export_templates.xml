@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="paperformat_export_payslip_landscape" model="report.paperformat">
+        <field name="name">Payslip Export Landscape</field>
+        <field name="default" eval="False"/>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">10</field>
+        <field name="margin_bottom">12</field>
+        <field name="margin_left">6</field>
+        <field name="margin_right">6</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">6</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <record id="action_export_payslip_summary_pdf" model="ir.actions.report">
+        <field name="name">Export Payslip Report</field>
+        <field name="model">hr.payslip</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">hr_payroll_community.report_payslip_export_summary</field>
+        <field name="report_file">hr_payroll_community.report_payslip_export_summary</field>
+        <field name="print_report_name">'Payslip Report'</field>
+        <field name="paperformat_id" ref="hr_payroll_community.paperformat_export_payslip_landscape"/>
+    </record>
+
+    <record id="action_server_export_payslip_summary_pdf" model="ir.actions.server">
+        <field name="name">Generate Export Payslip Report</field>
+        <field name="model_id" ref="model_hr_payslip"/>
+        <field name="binding_model_id" ref="model_hr_payslip"/>
+        <field name="binding_view_types">list</field>
+        <field name="binding_type">action</field>
+        <field name="state">code</field>
+        <field name="code">action = env.ref('hr_payroll_community.action_export_payslip_summary_pdf').report_action(records)</field>
+    </record>
+
+    <template id="report_payslip_export_summary">
+        <t t-call="web.html_container">
+            <t t-call="web.basic_layout">
+                <div class="page">
+                    <style>
+                        .ps-export-header {
+                            border-bottom: 1px solid #444;
+                            margin-bottom: 8px;
+                            padding-bottom: 6px;
+                        }
+                        .ps-export-logo {
+                            max-height: 48px;
+                            max-width: 260px;
+                        }
+                        .ps-export-title {
+                            margin: 0 0 6px 0;
+                            font-size: 16px;
+                            font-weight: 700;
+                            text-align: left;
+                        }
+                        .ps-export-table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            table-layout: fixed;
+                            font-size: 8px;
+                        }
+                        .ps-export-table th,
+                        .ps-export-table td {
+                            border: 1px solid #666;
+                            padding: 2px 3px;
+                            vertical-align: middle;
+                            word-wrap: break-word;
+                        }
+                        .ps-export-table th {
+                            background: #efefef;
+                            font-weight: 700;
+                            text-align: center;
+                            line-height: 1.2;
+                        }
+                        .ps-num {
+                            text-align: right;
+                            white-space: nowrap;
+                        }
+                        .ps-export-table td {
+                            line-height: 1.15;
+                        }
+                        .ps-export-total-row td {
+                            font-weight: 700;
+                            background: #f2f2f2;
+                        }
+                        .ps-export-footer {
+                            position: fixed;
+                            bottom: 0;
+                            left: 0;
+                            right: 0;
+                            border-top: 1px solid #444;
+                            padding-top: 4px;
+                            font-size: 9px;
+                            text-align: right;
+                        }
+                    </style>
+
+                    <div class="ps-export-header">
+                        <img t-if="res_company.logo" t-att-src="image_data_uri(res_company.logo)" alt="Company Logo" class="ps-export-logo"/>
+                    </div>
+                    <h3 class="ps-export-title">Payslip Report</h3>
+
+                    <table class="ps-export-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Ref</th>
+                                <th>Employee</th>
+                                <th>Designation</th>
+                                <th>Period</th>
+                                <th>Basic Salary</th>
+                                <th>Housing Allowance</th>
+                                <th>Transportation Allowance</th>
+                                <th>Mobile / Communication Allowance</th>
+                                <th>Mileage Allowance</th>
+                                <th>Medical</th>
+                                <th>Other Allowances</th>
+                                <th>Gross</th>
+                                <th>Other Deduction</th>
+                                <th>Profession Tax</th>
+                                <th>TDS(TAX)</th>
+                                <th>Professional Late Deduction</th>
+                                <th>LOP Deduction</th>
+                                <th>DU Bill Charges</th>
+                                <th>Loan Deduction</th>
+                                <th>GOSI Employee Contribution</th>
+                                <th>Penalty</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-set="slips" t-value="docs.sorted(key=lambda s: ((s.date_from or ''), (s.number or s.name or '')))"/>
+                            <t t-set="tot_basic" t-value="0.0"/>
+                            <t t-set="tot_hra" t-value="0.0"/>
+                            <t t-set="tot_transport" t-value="0.0"/>
+                            <t t-set="tot_mobile" t-value="0.0"/>
+                            <t t-set="tot_mileage" t-value="0.0"/>
+                            <t t-set="tot_medical" t-value="0.0"/>
+                            <t t-set="tot_other_allow" t-value="0.0"/>
+                            <t t-set="tot_gross" t-value="0.0"/>
+                            <t t-set="tot_other_ded" t-value="0.0"/>
+                            <t t-set="tot_prof_tax" t-value="0.0"/>
+                            <t t-set="tot_tds" t-value="0.0"/>
+                            <t t-set="tot_prof_late" t-value="0.0"/>
+                            <t t-set="tot_lop" t-value="0.0"/>
+                            <t t-set="tot_du_bill" t-value="0.0"/>
+                            <t t-set="tot_loan" t-value="0.0"/>
+                            <t t-set="tot_gosi" t-value="0.0"/>
+                            <t t-set="tot_penalty" t-value="0.0"/>
+                            <t t-foreach="slips" t-as="o">
+                                <t t-set="v_basic" t-value="o.get_salary_line_total('BASIC')"/>
+                                <t t-set="v_hra" t-value="o.get_salary_line_total('HRA')"/>
+                                <t t-set="v_transport" t-value="o.get_salary_line_total('Travel') + o.get_salary_line_total('CA')"/>
+                                <t t-set="v_mobile" t-value="o.get_salary_line_total('DA')"/>
+                                <t t-set="v_mileage" t-value="o.get_salary_line_total('Meal') + o.get_salary_line_total('ME')"/>
+                                <t t-set="v_medical" t-value="o.get_salary_line_total('Medical') + o.get_salary_line_total('MA')"/>
+                                <t t-set="v_other_allow" t-value="o.get_salary_line_total('Other')"/>
+                                <t t-set="v_gross" t-value="o.get_salary_line_total('GROSS')"/>
+                                <t t-set="v_other_ded" t-value="o.get_salary_line_total('OTHER_DEDUCTION') + o.get_salary_line_total('OTHER_DED')"/>
+                                <t t-set="v_prof_tax" t-value="o.get_salary_line_total('PT') + o.get_salary_line_total('PROF_TAX')"/>
+                                <t t-set="v_tds" t-value="o.get_salary_line_total('TDS') + o.get_salary_line_total('TAX')"/>
+                                <t t-set="v_prof_late" t-value="o.get_salary_line_total('PRO_LATE') + o.get_salary_line_total('LATE_DED')"/>
+                                <t t-set="v_lop" t-value="o.get_salary_line_total('LOP') + o.get_salary_line_total('LOP_DED')"/>
+                                <t t-set="v_du_bill" t-value="o.get_salary_line_total('DUBILL') + o.get_salary_line_total('DU_BILL')"/>
+                                <t t-set="v_loan" t-value="o.get_salary_line_total('LOAN') + o.get_salary_line_total('LOAN_DED')"/>
+                                <t t-set="v_gosi" t-value="o.get_salary_line_total('GOSI') + o.get_salary_line_total('GOSI_EMP')"/>
+                                <t t-set="v_penalty" t-value="o.get_salary_line_total('PENALTY')"/>
+                                <tr>
+                                    <td><span t-esc="o_index + 1"/></td>
+                                    <td><span t-esc="o.number or o.name or '-'"/></td>
+                                    <td><span t-esc="o.employee_id.name"/></td>
+                                    <td><span t-esc="o.employee_id.job_id.name or '-'"/></td>
+                                    <td><span t-esc="('%s to %s' % (o.date_from or '', o.date_to or '')).strip()"/></td>
+                                    <td class="ps-num"><span t-esc="'{:,.2f}'.format(v_basic)"/></td>
+                                    <td class="ps-num"><span t-esc="'{:,.2f}'.format(v_hra)"/></td>
+                                    <td class="ps-num"><span t-esc="'{:,.2f}'.format(v_transport)"/></td>
+                                    <td class="ps-num"><span t-esc="'{:,.2f}'.format(v_mobile)"/></td>
+                                    <td class="ps-num"><span t-esc="'{:,.2f}'.format(v_mileage)"/></td>
+                                    <td class="ps-num"><span t-esc="'{:,.2f}'.format(v_medical)"/></td>
+                                    <td class="ps-num"><span t-esc="'{:,.2f}'.format(v_other_allow)"/></td>
+                                    <td class="ps-num"><span t-esc="'{:,.2f}'.format(v_gross)"/></td>
+                                    <td class="ps-num"><span t-esc="'{:,.2f}'.format(v_other_ded)"/></td>
+                                    <td class="ps-num"><span t-esc="'{:,.2f}'.format(v_prof_tax)"/></td>
+                                    <td class="ps-num"><span t-esc="'{:,.2f}'.format(v_tds)"/></td>
+                                    <td class="ps-num"><span t-esc="'{:,.2f}'.format(v_prof_late)"/></td>
+                                    <td class="ps-num"><span t-esc="'{:,.2f}'.format(v_lop)"/></td>
+                                    <td class="ps-num"><span t-esc="'{:,.2f}'.format(v_du_bill)"/></td>
+                                    <td class="ps-num"><span t-esc="'{:,.2f}'.format(v_loan)"/></td>
+                                    <td class="ps-num"><span t-esc="'{:,.2f}'.format(v_gosi)"/></td>
+                                    <td class="ps-num"><span t-esc="'{:,.2f}'.format(v_penalty)"/></td>
+                                </tr>
+                                <t t-set="tot_basic" t-value="tot_basic + v_basic"/>
+                                <t t-set="tot_hra" t-value="tot_hra + v_hra"/>
+                                <t t-set="tot_transport" t-value="tot_transport + v_transport"/>
+                                <t t-set="tot_mobile" t-value="tot_mobile + v_mobile"/>
+                                <t t-set="tot_mileage" t-value="tot_mileage + v_mileage"/>
+                                <t t-set="tot_medical" t-value="tot_medical + v_medical"/>
+                                <t t-set="tot_other_allow" t-value="tot_other_allow + v_other_allow"/>
+                                <t t-set="tot_gross" t-value="tot_gross + v_gross"/>
+                                <t t-set="tot_other_ded" t-value="tot_other_ded + v_other_ded"/>
+                                <t t-set="tot_prof_tax" t-value="tot_prof_tax + v_prof_tax"/>
+                                <t t-set="tot_tds" t-value="tot_tds + v_tds"/>
+                                <t t-set="tot_prof_late" t-value="tot_prof_late + v_prof_late"/>
+                                <t t-set="tot_lop" t-value="tot_lop + v_lop"/>
+                                <t t-set="tot_du_bill" t-value="tot_du_bill + v_du_bill"/>
+                                <t t-set="tot_loan" t-value="tot_loan + v_loan"/>
+                                <t t-set="tot_gosi" t-value="tot_gosi + v_gosi"/>
+                                <t t-set="tot_penalty" t-value="tot_penalty + v_penalty"/>
+                            </t>
+                            <tr class="ps-export-total-row">
+                                <td colspan="5">Total</td>
+                                <td class="ps-num"><span t-esc="'{:,.2f}'.format(tot_basic)"/></td>
+                                <td class="ps-num"><span t-esc="'{:,.2f}'.format(tot_hra)"/></td>
+                                <td class="ps-num"><span t-esc="'{:,.2f}'.format(tot_transport)"/></td>
+                                <td class="ps-num"><span t-esc="'{:,.2f}'.format(tot_mobile)"/></td>
+                                <td class="ps-num"><span t-esc="'{:,.2f}'.format(tot_mileage)"/></td>
+                                <td class="ps-num"><span t-esc="'{:,.2f}'.format(tot_medical)"/></td>
+                                <td class="ps-num"><span t-esc="'{:,.2f}'.format(tot_other_allow)"/></td>
+                                <td class="ps-num"><span t-esc="'{:,.2f}'.format(tot_gross)"/></td>
+                                <td class="ps-num"><span t-esc="'{:,.2f}'.format(tot_other_ded)"/></td>
+                                <td class="ps-num"><span t-esc="'{:,.2f}'.format(tot_prof_tax)"/></td>
+                                <td class="ps-num"><span t-esc="'{:,.2f}'.format(tot_tds)"/></td>
+                                <td class="ps-num"><span t-esc="'{:,.2f}'.format(tot_prof_late)"/></td>
+                                <td class="ps-num"><span t-esc="'{:,.2f}'.format(tot_lop)"/></td>
+                                <td class="ps-num"><span t-esc="'{:,.2f}'.format(tot_du_bill)"/></td>
+                                <td class="ps-num"><span t-esc="'{:,.2f}'.format(tot_loan)"/></td>
+                                <td class="ps-num"><span t-esc="'{:,.2f}'.format(tot_gosi)"/></td>
+                                <td class="ps-num"><span t-esc="'{:,.2f}'.format(tot_penalty)"/></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="ps-export-footer">
+                        Page <span class="page"/> / <span class="topage"/>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

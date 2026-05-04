@@ -50,6 +50,7 @@
         'report/report_contribution_register_templates.xml',
         'report/report_payslip_templates.xml',
         'report/report_payslip_details_templates.xml',
+        'report/report_payslip_export_templates.xml',
         'views/hr_leave_type_views.xml',
         'views/hr_version_views.xml',
         'views/hr_salary_rule_views.xml',

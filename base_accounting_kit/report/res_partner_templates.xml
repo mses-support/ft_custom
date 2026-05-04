@@ -32,12 +32,10 @@
                                 <td align="center"><t t-esc="line['name']"/></td>
                                 <td align="center"><t t-esc="line['invoice_date_due']"/></td>
                                 <td align="center">
-                                    <t t-esc="currency"/>
-                                    <t t-esc="line['sub_total']"/>
+                                    <t t-esc="'({:,.2f})'.format(abs(line['sub_total'])) if line['sub_total'] &lt; 0 else '{:,.2f}'.format(line['sub_total'])"/>
                                 </td>
                                 <td align="center">
-                                    <t t-esc="currency"/>
-                                    <t t-esc="line['balance']"/>
+                                    <t t-esc="'({:,.2f})'.format(abs(line['balance'])) if line['balance'] &lt; 0 else '{:,.2f}'.format(line['balance'])"/>
                                 </td>
                             </tr>
                         </t>
@@ -53,15 +51,13 @@
                                         <tr>
                                             <td>Total Amount:</td>
                                             <td>
-                                                <t t-esc="currency"/>
-                                                <t t-esc="total"/>
+                                                <t t-esc="'({:,.2f})'.format(abs(total)) if total &lt; 0 else '{:,.2f}'.format(total)"/>
                                             </td>
                                         </tr>
                                         <tr>
                                             <td>Total Balance:</td>
                                             <td>
-                                                <t t-esc="currency"/>
-                                                <t t-esc="balance"/>
+                                                <t t-esc="'({:,.2f})'.format(abs(balance)) if balance &lt; 0 else '{:,.2f}'.format(balance)"/>
                                             </td>
                                         </tr>
                                     </tbody>
