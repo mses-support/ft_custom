@@ -157,10 +157,18 @@
                                     <td class="text-cell"><span t-esc="row['reference']"/></td>
                                     <td><span t-esc="row['date']"/></td>
                                     <td><span t-esc="row['due_date']"/></td>
-                                    <td class="num"><span t-esc="'%.2f' % row['invoice']"/></td>
-                                    <td class="num"><span t-esc="'%.2f' % row['receipt']"/></td>
-                                    <td class="num"><span t-esc="'%.2f' % row['allocated']"/></td>
-                                    <td class="num"><span t-esc="'%.2f' % row['balance']"/></td>
+                                    <td class="num">
+                                        <span t-esc="'({:,.2f})'.format(abs(row['invoice'])) if row['invoice'] &lt; 0 else '{:,.2f}'.format(row['invoice'])"/>
+                                    </td>
+                                    <td class="num">
+                                        <span t-esc="'({:,.2f})'.format(abs(row['receipt'])) if row['receipt'] &lt; 0 else '{:,.2f}'.format(row['receipt'])"/>
+                                    </td>
+                                    <td class="num">
+                                        <span t-esc="'({:,.2f})'.format(abs(row['allocated'])) if row['allocated'] &lt; 0 else '{:,.2f}'.format(row['allocated'])"/>
+                                    </td>
+                                    <td class="num">
+                                        <span t-esc="'({:,.2f})'.format(abs(row['balance'])) if row['balance'] &lt; 0 else '{:,.2f}'.format(row['balance'])"/>
+                                    </td>
                                 </tr>
                             </t>
 
@@ -170,10 +178,18 @@
                                 <td/>
                                 <td/>
                                 <td/>
-                                <td class="num"><span t-esc="'%.2f' % grand_total['invoice']"/></td>
-                                <td class="num"><span t-esc="'%.2f' % grand_total['receipt']"/></td>
-                                <td class="num"><span t-esc="'%.2f' % grand_total['allocated']"/></td>
-                                <td class="num"><span t-esc="'%.2f' % grand_total['balance']"/></td>
+                                <td class="num">
+                                    <span t-esc="'({:,.2f})'.format(abs(grand_total['invoice'])) if grand_total['invoice'] &lt; 0 else '{:,.2f}'.format(grand_total['invoice'])"/>
+                                </td>
+                                <td class="num">
+                                    <span t-esc="'({:,.2f})'.format(abs(grand_total['receipt'])) if grand_total['receipt'] &lt; 0 else '{:,.2f}'.format(grand_total['receipt'])"/>
+                                </td>
+                                <td class="num">
+                                    <span t-esc="'({:,.2f})'.format(abs(grand_total['allocated'])) if grand_total['allocated'] &lt; 0 else '{:,.2f}'.format(grand_total['allocated'])"/>
+                                </td>
+                                <td class="num">
+                                    <span t-esc="'({:,.2f})'.format(abs(grand_total['balance'])) if grand_total['balance'] &lt; 0 else '{:,.2f}'.format(grand_total['balance'])"/>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
