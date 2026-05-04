@@ -5,12 +5,12 @@
         <field name="default" eval="False"/>
         <field name="format">A4</field>
         <field name="orientation">Landscape</field>
-        <field name="margin_top">10</field>
-        <field name="margin_bottom">12</field>
+        <field name="margin_top">40</field>
+        <field name="margin_bottom">16</field>
         <field name="margin_left">6</field>
         <field name="margin_right">6</field>
-        <field name="header_line" eval="False"/>
-        <field name="header_spacing">6</field>
+        <field name="header_line" eval="True"/>
+        <field name="header_spacing">22</field>
         <field name="dpi">90</field>
     </record>
 
@@ -36,20 +36,11 @@
 
     <template id="report_payslip_export_summary">
         <t t-call="web.html_container">
-            <t t-call="web.basic_layout">
+            <t t-call="web.external_layout">
                 <div class="page">
                     <style>
-                        .ps-export-header {
-                            border-bottom: 1px solid #444;
-                            margin-bottom: 8px;
-                            padding-bottom: 6px;
-                        }
-                        .ps-export-logo {
-                            max-height: 48px;
-                            max-width: 260px;
-                        }
                         .ps-export-title {
-                            margin: 0 0 6px 0;
+                            margin: 0 0 8px 0;
                             font-size: 16px;
                             font-weight: 700;
                             text-align: left;
@@ -60,12 +51,23 @@
                             table-layout: fixed;
                             font-size: 8px;
                         }
+                        .ps-export-table thead {
+                            display: table-header-group;
+                        }
+                        .ps-export-table tfoot {
+                            display: table-row-group;
+                        }
                         .ps-export-table th,
                         .ps-export-table td {
                             border: 1px solid #666;
                             padding: 2px 3px;
                             vertical-align: middle;
                             word-wrap: break-word;
+                            page-break-inside: avoid;
+                        }
+                        .ps-export-table tr {
+                            page-break-inside: avoid;
+                            page-break-after: auto;
                         }
                         .ps-export-table th {
                             background: #efefef;
@@ -84,21 +86,12 @@
                             font-weight: 700;
                             background: #f2f2f2;
                         }
-                        .ps-export-footer {
-                            position: fixed;
-                            bottom: 0;
-                            left: 0;
-                            right: 0;
-                            border-top: 1px solid #444;
-                            padding-top: 4px;
-                            font-size: 9px;
-                            text-align: right;
+                        .ps-export-body {
+                            padding-top: 18px;
                         }
                     </style>
 
-                    <div class="ps-export-header">
-                        <img t-if="res_company.logo" t-att-src="image_data_uri(res_company.logo)" alt="Company Logo" class="ps-export-logo"/>
-                    </div>
+                    <div class="ps-export-body">
                     <h3 class="ps-export-title">Payslip Report</h3>
 
                     <table class="ps-export-table">
@@ -229,8 +222,6 @@
                             </tr>
                         </tbody>
                     </table>
-                    <div class="ps-export-footer">
-                        Page <span class="page"/> / <span class="topage"/>
                     </div>
                 </div>
             </t>
