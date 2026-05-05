@@ -59,3 +59,9 @@ class HrPayslipInput(models.Model):
                                   required=True,
                                   help="The contract for which applied"
                                        " this input")
+    category_id = fields.Many2one(
+        'hr.salary.rule.category',
+        string='Category',
+        help='Optional category used to post this input in salary '
+             'computation/category summary.'
+    )

@@ -120,30 +120,35 @@ class FinancialStatementReportMixin(models.AbstractModel):
                 amount_map[line.code] = 0.0
                 amount_map[f"{line.code}__cmp"] = 0.0
 
-        # Totals are sum of direct children by parent_code hierarchy
+        # Build hierarchy by parent_code for section total rollups.
         children_map = {}
         for ln in ordered:
             if ln.parent_code:
                 children_map.setdefault(ln.parent_code, []).append(ln.code)
 
-        def total_for(code):
+        def subtotal_for_section(section_code, comparison=False):
             total = 0.0
-            for child in children_map.get(code, []):
-                total += amount_map.get(child, 0.0)
-                total += total_for(child)
-            return total
+            section = by_code.get(section_code)
+            if section and not section.is_total:
+                key = f"{section_code}__cmp" if comparison else section_code
+                total += amount_map.get(key, 0.0)
 
-        def total_for_cmp(code):
-            total = 0.0
-            for child in children_map.get(code, []):
-                total += amount_map.get(f"{child}__cmp", 0.0)
-                total += total_for_cmp(child)
+            for child in children_map.get(section_code, []):
+                child_line = by_code.get(child)
+                if not child_line:
+                    continue
+                if child_line.is_total:
+                    continue
+                total += subtotal_for_section(child, comparison=comparison)
             return total
 
         for line in ordered:
             if line.is_total:
-                amount_map[line.code] = total_for(line.code)
-                amount_map[f"{line.code}__cmp"] = total_for_cmp(line.code)
+                # In this setup, total lines are usually leaf nodes with parent_code
+                # pointing to the section to total.
+                root_code = line.parent_code or line.code
+                amount_map[line.code] = subtotal_for_section(root_code, comparison=False)
+                amount_map[f"{line.code}__cmp"] = subtotal_for_section(root_code, comparison=True)
 
         rows = []
         for line in ordered:

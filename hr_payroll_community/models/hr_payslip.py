@@ -473,6 +473,16 @@ class HrPayslip(models.Model):
         sorted_rule_ids = [id for id, sequence in
                            sorted(rule_ids, key=lambda x: x[1])]
         sorted_rules = self.env['hr.salary.rule'].browse(sorted_rule_ids)
+        # Map input codes to salary rules linked through hr.rule.input.
+        input_rule_map = {}
+        for input_def in sorted_rules.mapped('input_ids'):
+            if input_def.code and input_def.input_id and input_def.code not in input_rule_map:
+                input_rule_map[input_def.code] = input_def.input_id
+        # Fallback map: one salary rule per category from the structure.
+        category_rule_map = {}
+        for rule in sorted_rules:
+            if rule.category_id and rule.category_id.id not in category_rule_map:
+                category_rule_map[rule.category_id.id] = rule
         for contract in contracts:
             employee = contract.employee_id
             localdict = dict(baselocaldict, employee=employee,
@@ -527,6 +537,56 @@ class HrPayslip(models.Model):
                     # blacklist this rule and its children
                     blacklist += [id for id, seq in
                                   rule._recursive_search_of_rules()]
+
+            # Also expose manual "Other Inputs" as payslip lines so they
+            # appear in Salary Computation and category details.
+            contract_inputs = payslip.input_line_ids.filtered(
+                lambda line: line.contract_id.id == contract.id
+            )
+            for input_line in contract_inputs:
+                if not input_line.amount:
+                    continue
+                already_present = any(
+                    line_data.get('code') == input_line.code
+                    and line_data.get('contract_id') == contract.id
+                    for line_data in result_dict.values()
+                )
+                if already_present:
+                    continue
+                salary_rule = input_rule_map.get(input_line.code)
+                if not salary_rule and input_line.category_id:
+                    salary_rule = category_rule_map.get(input_line.category_id.id)
+                if not salary_rule and sorted_rules:
+                    salary_rule = sorted_rules[0]
+                if not salary_rule:
+                    continue
+
+                input_category = input_line.category_id or salary_rule.category_id
+                key = "INPUT-%s-%s-%s" % (input_line.code, contract.id, input_line.id)
+                result_dict[key] = {
+                    'salary_rule_id': salary_rule.id,
+                    'contract_id': contract.id,
+                    'name': input_line.name,
+                    'code': input_line.code,
+                    'category_id': input_category.id if input_category else False,
+                    'sequence': input_line.sequence or salary_rule.sequence,
+                    'appears_on_payslip': True,
+                    'condition_select': salary_rule.condition_select or 'none',
+                    'condition_python': salary_rule.condition_python or '\nresult = True',
+                    'condition_range': salary_rule.condition_range or '0.0',
+                    'condition_range_min': salary_rule.condition_range_min or 0.0,
+                    'condition_range_max': salary_rule.condition_range_max or 0.0,
+                    'amount_select': 'fix',
+                    'amount_fix': input_line.amount,
+                    'amount_python_compute': salary_rule.amount_python_compute or '\nresult = 0.0',
+                    'amount_percentage': 0.0,
+                    'amount_percentage_base': salary_rule.amount_percentage_base or '0.0',
+                    'register_id': salary_rule.register_id.id,
+                    'amount': input_line.amount,
+                    'employee_id': contract.employee_id.id,
+                    'quantity': 1.0,
+                    'rate': 100.0,
+                }
         return list(result_dict.values())
 
     @api.model
