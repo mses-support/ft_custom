@@ -369,6 +369,18 @@ class HrPayslip(models.Model):
             """a class that will be used into the python code, mainly for
             usability purposes"""
 
+            class _MissingInputValue:
+                """Fallback object for missing input codes in rule Python."""
+
+                amount = 0.0
+
+                def __bool__(self):
+                    return False
+
+            def __getattr__(self, attr):
+                """Return a zero-like object so `.amount` access is safe."""
+                return self.dict.get(attr) or self._MissingInputValue()
+
             def sum(self, code, from_date, to_date=None):
                 """Function for getting sum of Payslip with respect to
                  from_date,to_date fields"""
