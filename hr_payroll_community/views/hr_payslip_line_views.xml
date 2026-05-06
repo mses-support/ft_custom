@@ -166,8 +166,8 @@
                                    readonly="state != 'draft'">
                                 <list string="Input Data" editable="bottom">
                                     <field name="name"/>
-                                    <field name="code"/>
                                     <field name="category_id"/>
+                                    <field name="code" readonly="category_id"/>
                                     <field name="amount"/>
                                     <field name="contract_id"/>
                                     <field name="sequence" invisible="True"/>
@@ -175,8 +175,8 @@
                                 <form string="Payslip Line">
                                     <group col="4">
                                         <field name="name"/>
-                                        <field name="code"/>
                                         <field name="category_id"/>
+                                        <field name="code" readonly="category_id"/>
                                         <field name="sequence"/>
                                         <field name="amount"/>
                                         <field name="contract_id"/>

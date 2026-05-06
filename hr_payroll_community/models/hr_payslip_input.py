@@ -22,7 +22,7 @@
 #############################################################################
 from datetime import datetime
 from dateutil import relativedelta
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class HrPayslipInput(models.Model):
@@ -65,3 +65,29 @@ class HrPayslipInput(models.Model):
         help='Optional category used to post this input in salary '
              'computation/category summary.'
     )
+
+    @api.onchange('category_id')
+    def _onchange_category_id(self):
+        """Auto-assign input code from selected category."""
+        for rec in self:
+            if rec.category_id and rec.category_id.code:
+                rec.code = rec.category_id.code
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        """Keep code synced with category when category is provided."""
+        for vals in vals_list:
+            category_id = vals.get('category_id')
+            if category_id:
+                category = self.env['hr.salary.rule.category'].browse(category_id)
+                if category.code:
+                    vals['code'] = category.code
+        return super().create(vals_list)
+
+    def write(self, vals):
+        """Keep code synced with category when category changes."""
+        if 'category_id' in vals and vals.get('category_id'):
+            category = self.env['hr.salary.rule.category'].browse(vals['category_id'])
+            if category.code:
+                vals['code'] = category.code
+        return super().write(vals)
