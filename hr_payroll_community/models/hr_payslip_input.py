@@ -75,8 +75,12 @@ class HrPayslipInput(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        """Keep code synced with category when category is provided."""
+        """Keep code/category sync and default contract from payslip."""
         for vals in vals_list:
+            if not vals.get('contract_id') and vals.get('payslip_id'):
+                payslip = self.env['hr.payslip'].browse(vals['payslip_id'])
+                if payslip.contract_id:
+                    vals['contract_id'] = payslip.contract_id.id
             category_id = vals.get('category_id')
             if category_id:
                 category = self.env['hr.salary.rule.category'].browse(category_id)
