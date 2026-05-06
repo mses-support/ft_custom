@@ -501,8 +501,12 @@ class HrPayslip(models.Model):
                              contract=contract)
             # Apply manual inputs dynamically in computation order so they can
             # impact subsequent category-based rules (e.g. GROSS/NET).
+            # Accept input lines for current contract, and also legacy/manual
+            # lines without contract set (common on older servers/views).
             contract_inputs = payslip.input_line_ids.filtered(
-                lambda line: line.contract_id.id == contract.id and line.amount
+                lambda line: line.amount and (
+                    not line.contract_id or line.contract_id.id == contract.id
+                )
             ).sorted(key=lambda line: (line.sequence or 10, line.id))
             input_index = 0
 

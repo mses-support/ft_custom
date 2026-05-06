@@ -66,6 +66,24 @@ class HrPayslipInput(models.Model):
              'computation/category summary.'
     )
 
+    @api.model
+    def default_get(self, fields_list):
+        """Default contract from payslip when opening Other Inputs inline."""
+        vals = super().default_get(fields_list)
+        if vals.get('contract_id'):
+            return vals
+
+        contract_id = self.env.context.get('default_contract_id')
+        if not contract_id:
+            active_model = self.env.context.get('active_model')
+            active_id = self.env.context.get('active_id')
+            if active_model == 'hr.payslip' and active_id:
+                payslip = self.env['hr.payslip'].browse(active_id)
+                contract_id = payslip.contract_id.id if payslip.contract_id else False
+        if contract_id:
+            vals['contract_id'] = contract_id
+        return vals
+
     @api.onchange('category_id')
     def _onchange_category_id(self):
         """Auto-assign input code from selected category."""
