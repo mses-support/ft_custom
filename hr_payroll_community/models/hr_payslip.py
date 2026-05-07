@@ -369,6 +369,18 @@ class HrPayslip(models.Model):
             """a class that will be used into the python code, mainly for
             usability purposes"""
 
+            class _MissingInputValue:
+                """Fallback object for missing input codes in rule Python."""
+
+                amount = 0.0
+
+                def __bool__(self):
+                    return False
+
+            def __getattr__(self, attr):
+                """Return a zero-like object so `.amount` access is safe."""
+                return self.dict.get(attr) or self._MissingInputValue()
+
             def sum(self, code, from_date, to_date=None):
                 """Function for getting sum of Payslip with respect to
                  from_date,to_date fields"""
@@ -473,11 +485,81 @@ class HrPayslip(models.Model):
         sorted_rule_ids = [id for id, sequence in
                            sorted(rule_ids, key=lambda x: x[1])]
         sorted_rules = self.env['hr.salary.rule'].browse(sorted_rule_ids)
+        # Map input codes to salary rules linked through hr.rule.input.
+        input_rule_map = {}
+        for input_def in sorted_rules.mapped('input_ids'):
+            if input_def.code and input_def.input_id and input_def.code not in input_rule_map:
+                input_rule_map[input_def.code] = input_def.input_id
+        # Fallback map: one salary rule per category from the structure.
+        category_rule_map = {}
+        for rule in sorted_rules:
+            if rule.category_id and rule.category_id.id not in category_rule_map:
+                category_rule_map[rule.category_id.id] = rule
         for contract in contracts:
             employee = contract.employee_id
             localdict = dict(baselocaldict, employee=employee,
                              contract=contract)
+            # Apply manual inputs dynamically in computation order so they can
+            # impact subsequent category-based rules (e.g. GROSS/NET).
+            # Accept input lines for current contract, and also legacy/manual
+            # lines without contract set (common on older servers/views).
+            contract_inputs = payslip.input_line_ids.filtered(
+                lambda line: line.amount and (
+                    not line.contract_id or line.contract_id.id == contract.id
+                )
+            ).sorted(key=lambda line: (line.sequence or 10, line.id))
+            input_index = 0
+
+            def _process_input_line(input_line):
+                salary_rule = input_rule_map.get(input_line.code)
+                if not salary_rule and input_line.category_id:
+                    salary_rule = category_rule_map.get(input_line.category_id.id)
+                if not salary_rule and sorted_rules:
+                    salary_rule = sorted_rules[0]
+                if not salary_rule:
+                    return
+
+                input_category = input_line.category_id or salary_rule.category_id
+                previous_amount = localdict.get(input_line.code, 0.0)
+                tot_rule = input_line.amount
+                localdict[input_line.code] = tot_rule
+                rules_dict[input_line.code] = salary_rule
+                if input_category:
+                    _sum_salary_rule_category(
+                        localdict, input_category, tot_rule - previous_amount
+                    )
+
+                key = "INPUT-%s-%s-%s" % (input_line.code, contract.id, input_line.id)
+                result_dict[key] = {
+                    'salary_rule_id': salary_rule.id,
+                    'contract_id': contract.id,
+                    'name': input_line.name,
+                    'code': input_line.code,
+                    'category_id': input_category.id if input_category else False,
+                    'sequence': input_line.sequence or salary_rule.sequence,
+                    'appears_on_payslip': True,
+                    'condition_select': salary_rule.condition_select or 'none',
+                    'condition_python': salary_rule.condition_python or '\nresult = True',
+                    'condition_range': salary_rule.condition_range or '0.0',
+                    'condition_range_min': salary_rule.condition_range_min or 0.0,
+                    'condition_range_max': salary_rule.condition_range_max or 0.0,
+                    'amount_select': 'fix',
+                    'amount_fix': input_line.amount,
+                    'amount_python_compute': salary_rule.amount_python_compute or '\nresult = 0.0',
+                    'amount_percentage': 0.0,
+                    'amount_percentage_base': salary_rule.amount_percentage_base or '0.0',
+                    'register_id': salary_rule.register_id.id,
+                    'amount': input_line.amount,
+                    'employee_id': contract.employee_id.id,
+                    'quantity': 1.0,
+                    'rate': 100.0,
+                }
+
             for rule in sorted_rules:
+                while input_index < len(contract_inputs) and (
+                        (contract_inputs[input_index].sequence or 10) <= rule.sequence):
+                    _process_input_line(contract_inputs[input_index])
+                    input_index += 1
                 key = rule.code + '-' + str(contract.id)
                 localdict['result'] = None
                 localdict['result_qty'] = 1.0
@@ -527,6 +609,10 @@ class HrPayslip(models.Model):
                     # blacklist this rule and its children
                     blacklist += [id for id, seq in
                                   rule._recursive_search_of_rules()]
+
+            while input_index < len(contract_inputs):
+                _process_input_line(contract_inputs[input_index])
+                input_index += 1
         return list(result_dict.values())
 
     @api.model

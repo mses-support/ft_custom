@@ -22,7 +22,7 @@
 #############################################################################
 from datetime import datetime
 from dateutil import relativedelta
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class HrPayslipInput(models.Model):
@@ -59,3 +59,57 @@ class HrPayslipInput(models.Model):
                                   required=True,
                                   help="The contract for which applied"
                                        " this input")
+    category_id = fields.Many2one(
+        'hr.salary.rule.category',
+        string='Category',
+        help='Optional category used to post this input in salary '
+             'computation/category summary.'
+    )
+
+    @api.model
+    def default_get(self, fields_list):
+        """Default contract from payslip when opening Other Inputs inline."""
+        vals = super().default_get(fields_list)
+        if vals.get('contract_id'):
+            return vals
+
+        contract_id = self.env.context.get('default_contract_id')
+        if not contract_id:
+            active_model = self.env.context.get('active_model')
+            active_id = self.env.context.get('active_id')
+            if active_model == 'hr.payslip' and active_id:
+                payslip = self.env['hr.payslip'].browse(active_id)
+                contract_id = payslip.contract_id.id if payslip.contract_id else False
+        if contract_id:
+            vals['contract_id'] = contract_id
+        return vals
+
+    @api.onchange('category_id')
+    def _onchange_category_id(self):
+        """Auto-assign input code from selected category."""
+        for rec in self:
+            if rec.category_id and rec.category_id.code:
+                rec.code = rec.category_id.code
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        """Keep code/category sync and default contract from payslip."""
+        for vals in vals_list:
+            if not vals.get('contract_id') and vals.get('payslip_id'):
+                payslip = self.env['hr.payslip'].browse(vals['payslip_id'])
+                if payslip.contract_id:
+                    vals['contract_id'] = payslip.contract_id.id
+            category_id = vals.get('category_id')
+            if category_id:
+                category = self.env['hr.salary.rule.category'].browse(category_id)
+                if category.code:
+                    vals['code'] = category.code
+        return super().create(vals_list)
+
+    def write(self, vals):
+        """Keep code synced with category when category changes."""
+        if 'category_id' in vals and vals.get('category_id'):
+            category = self.env['hr.salary.rule.category'].browse(vals['category_id'])
+            if category.code:
+                vals['code'] = category.code
+        return super().write(vals)
